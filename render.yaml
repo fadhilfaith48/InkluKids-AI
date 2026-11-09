@@ -1,0 +1,28 @@
+# Konfigurasi deploy backend FastAPI ke Render.
+# Tidak ada rahasia di file ini. Nilai GEMINI_API_KEY dan ALLOWED_ORIGINS
+# diisi lewat dashboard Render (sync: false).
+services:
+  - type: web
+    name: pahamin-inklusif-api
+    runtime: python
+    rootDir: Backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: ENVIRONMENT
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.6-flash
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: ALLOWED_ORIGIN_REGEX
+        value: "https://.*\\.vercel\\.app"
+      - key: ENABLE_DEMO_FALLBACK
+        value: "true"
