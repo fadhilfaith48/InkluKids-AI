@@ -4,7 +4,7 @@
 
 Aplikasi web edukasi yang mengubah foto halaman buku pelajaran menjadi materi yang sesuai kebutuhan anak penyandang disabilitas. Karya untuk **LOGICODIX 2026 Hackathon Competition**, Subtema 1: *Smart & Fun Education*.
 
-- Tim: `<Nama Tim> — <Anggota 1>, <Anggota 2>`
+- Tim: **Git_Commit** — Fadhil Faith Al Abrisam Dewanto
 - Repository: https://github.com/fadhilfaith48/InkluKids-AI
 - Video demo: `<URL YouTube (Unlisted/Public)>`
 - Aplikasi (Vercel): `<URL frontend>`
@@ -346,7 +346,7 @@ Bila kuota AI bermasalah, gunakan **Contoh Halaman** pada modal pindai atau
 
 ## 11. Lisensi dan Atribusi
 
-- Lisensi kode: `<isi lisensi, misalnya MIT>`
+- Lisensi kode: [MIT](LICENSE)
 - Ikon: [Lucide](https://lucide.dev) (lisensi ISC)
 - Font: [Lexend](https://fonts.google.com/specimen/Lexend) via Google Fonts (SIL Open Font License). Opsi "Huruf Lebar" memakai fallback sistem (Comic Sans MS/Chalkboard SE) karena OpenDyslexic belum di-self-host.
 - Animasi konfeti: [canvas-confetti](https://www.npmjs.com/package/canvas-confetti) (ISC)
