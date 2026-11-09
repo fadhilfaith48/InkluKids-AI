@@ -8,13 +8,20 @@ Pengguna utama aplikasi ini adalah **anak-anak penyandang disabilitas**. Karena 
 
 | Data | Tempat | Tujuan | Catatan |
 |---|---|---|---|
-| Gambar halaman buku | Dikirim ke Gemini, **tidak disimpan** oleh aplikasi | OCR dan penyederhanaan materi | Pengguna diminta hanya memotret halaman buku |
-| Teks hasil OCR, poin, istilah, dan kutipan sumber | `localStorage` di browser pengguna | Riwayat materi dan Lihat Sumber | Dapat dihapus dari menu Materi Saya |
-| Bintang | Memori sesi browser | Elemen menyenangkan | Tidak dikirim ke server |
+| Gambar halaman buku | Dikirim ke backend dan Gemini; saat ini **tidak disimpan** permanen. Rencana: disimpan di bucket privat Supabase Storage dan diakses lewat signed URL | OCR dan penyederhanaan materi | Pengguna diminta hanya memotret halaman buku |
+| Cache hasil scan | Memori proses backend, maksimal 1 jam | Mencegah pemrosesan gambar yang sama dua kali (Green IT) | Berisi hash gambar dan hasil teks; hilang saat server restart |
+| Teks hasil OCR, poin, istilah, dan kutipan sumber | `localStorage` (default) atau database Supabase bila `NEXT_PUBLIC_DATA_MODE=supabase` | Riwayat materi dan Lihat Sumber | Dapat dihapus dari menu Materi Saya |
+| Bintang | `localStorage` atau database Supabase (bagian dari materi) | Elemen menyenangkan | Tidak dipakai untuk iklan |
+| Nama guru, catatan guru, status verifikasi | `localStorage` (default) atau database Supabase | Fitur Mode Guru | Terlihat oleh guru dan siswa yang terhubung |
+| Skor kuis (terakhir, terbaik, total soal, jumlah percobaan) dan status selesai | `localStorage` (default) atau database Supabase | Latihan mandiri (bukan penilaian resmi) | Terlihat oleh siswa dan guru binaannya |
+| Akun login | Supabase Auth (email, kata sandi terenkripsi, peran) | Login guru/siswa | Registrasi siswa direncanakan; akun guru dibuat pengelola |
+| Materi buatan guru (judul, teks, poin) dan salinannya untuk siswa | Database Supabase saat `NEXT_PUBLIC_DATA_MODE=supabase` | Guru membuat materi, lalu membagikannya ke siswa binaan | Salinan materi dimiliki tiap siswa; guru binaan dapat melihatnya |
 | Pengaturan tampilan | Memori sesi browser | Menyesuaikan tampilan | Belum disimpan permanen |
 | Log teknis server | Server hosting | Diagnosis kegagalan | Hanya nama jenis error, tanpa isi gambar atau teks |
 
-Aplikasi **tidak** memakai pelacak iklan, **tidak** membuat akun, dan **tidak** menjual data.
+Aplikasi **tidak** memakai pelacak iklan dan **tidak** menjual data. Saat ini
+akun dibuat oleh pengelola. Registrasi siswa (dengan persetujuan orang tua/guru)
+masih direncanakan dan belum aktif.
 
 ## 2. Yang Diminta dari Pengguna
 
@@ -26,7 +33,9 @@ Aplikasi **tidak** memakai pelacak iklan, **tidak** membuat akun, dan **tidak** 
 | Pihak | Data | Tujuan |
 |---|---|---|
 | Layanan Gemini API (Google) | Gambar halaman buku dan teks yang dikirim untuk diproses | OCR, penyederhanaan, dan penjelasan alternatif |
-| Vercel (bila dipakai untuk hosting) | Permintaan HTTP ke aplikasi | Hosting |
+| Supabase (bila `NEXT_PUBLIC_DATA_MODE=supabase`) | Akun, materi, verifikasi guru, dan hasil kuis | Login, penyimpanan, dan sinkronisasi antar perangkat |
+| Hosting backend (Render/Railway/Cloud Run/VPS) | Permintaan HTTP dan log teknis | Menjalankan API FastAPI |
+| Vercel (bila dipakai untuk hosting) | Permintaan HTTP ke aplikasi | Hosting frontend |
 
 Text-to-Speech memakai Web Speech API browser. Pada sebagian browser, suara dapat diproses oleh penyedia browser; aplikasi tidak merekam atau menyimpan audio.
 
@@ -35,16 +44,21 @@ Text-to-Speech memakai Web Speech API browser. Pada sebagian browser, suara dapa
 ## 4. Keamanan
 
 - API key Gemini hanya berada di sisi server dan tidak dikirim ke browser.
-- Tidak ada database pengguna pada MVP, sehingga tidak ada data akun yang disimpan.
-- Riwayat hanya berada di perangkat pengguna dan dapat dihapus kapan saja.
+- Frontend hanya memakai anon/publishable key Supabase; service role key tidak pernah dipakai di browser.
+- Akses data diatur Row Level Security: siswa hanya melihat datanya sendiri, guru hanya melihat siswa binaannya.
+- Guru tidak boleh mengubah poin siswa secara langsung; perubahan hanya melalui alur verifikasi.
+- Verifikasi JWT Supabase di backend dan penyimpanan gambar di bucket privat **masih direncanakan**; sampai selesai, endpoint AI dilindungi rate limit per IP dan gambar tidak disimpan permanen.
+- Tanpa login, riwayat dan data belajar tetap berada di perangkat pengguna dan dapat dihapus kapan saja.
 - Input divalidasi di server (tipe, ukuran gambar, panjang teks).
 
 ## 5. Lama Penyimpanan
 
 | Data | Lama penyimpanan |
 |---|---|
-| Gambar halaman buku | Tidak disimpan oleh aplikasi; hanya diproses saat permintaan |
+| Gambar halaman buku | Saat ini tidak disimpan permanen; hanya diproses saat permintaan. Jika Supabase Storage diaktifkan: sampai pengguna menghapus materi/akun |
+| Cache hasil scan | Maksimal 1 jam di memori backend, lalu dihapus otomatis |
 | Hasil materi dan riwayat | Sampai pengguna menghapus dari Materi Saya atau membersihkan data browser |
+| Nama guru, catatan, status verifikasi, dan skor kuis | Sampai pengguna menghapus materi terkait atau membersihkan data browser |
 | Log teknis | `<isi, mis. 30 hari>` |
 
 ## 6. Hak Pengguna
@@ -52,7 +66,7 @@ Text-to-Speech memakai Web Speech API browser. Pada sebagian browser, suara dapa
 - **Menghapus materi:** buka **Materi Saya**, lalu tekan **Hapus** pada materi yang ingin dihapus.
 - **Menghapus semua data lokal:** hapus data situs di pengaturan browser.
 - **Mengakses data:** seluruh materi yang tersimpan dapat dilihat di Materi Saya.
-- Karena MVP tidak memakai akun, tidak ada data akun yang perlu dihapus dari server.
+- **Akun Supabase:** pengguna dapat meminta penghapusan akun dan data terkait (materi, verifikasi, hasil kuis, gambar bila Storage aktif) melalui kontak tim. Saat ini belum ada tombol hapus akun di aplikasi.
 - Pertanyaan atau permintaan terkait data dapat dikirim ke: `<isi kontak tim>`.
 
 ## 7. Landasan Hukum
@@ -61,10 +75,11 @@ Aplikasi dirancang dengan memperhatikan **Undang-Undang Nomor 27 Tahun 2022 tent
 
 ## 8. Transparansi AI
 
-- Setiap konten dari AI diberi label "Dibuat oleh AI". *(Catatan: label ini masih perlu ditambahkan pada antarmuka; lihat docs/TESTING.md.)*
+- Setiap konten dari AI diberi label "Dibuat oleh AI" pada antarmuka.
 - Tombol **Lihat Sumber** menampilkan kutipan teks asli yang menjadi dasar penjelasan.
 - Poin yang tidak dapat dirujuk ke teks sumber ditandai "Belum dapat dirujuk".
 - AI tidak dipakai untuk diagnosis atau penilaian siswa.
+- Kuis Ceria disusun lokal dari poin materi, bukan penilaian resmi, dan tidak memanggil AI.
 
 ## 9. Ramah Anak
 
@@ -77,7 +92,10 @@ Perubahan akan dicatat pada dokumen ini beserta tanggalnya.
 
 | Tanggal | Perubahan |
 |---|---|
-| 4 November 2026 | Draf awal disesuaikan dengan MVP tanpa akun dan riwayat lokal |
+| 7 November 2026 | Draf awal disesuaikan dengan MVP tanpa akun dan riwayat lokal |
+| 9 November 2026 | Menambahkan data Mode Guru (nama, catatan, verifikasi) dan skor kuis yang tersimpan lokal |
+| 9 November 2026 | Menambahkan sinkronisasi Supabase dan materi buatan guru yang dibagikan ke siswa |
+| 9 November 2026 | Menyesuaikan status: registrasi siswa, Supabase Storage, dan verifikasi JWT masih direncanakan; menambahkan hak hapus akun/data Supabase |
 
 ## 11. Kontak
 
