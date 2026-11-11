@@ -8,12 +8,13 @@ import binascii
 import json
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from starlette.datastructures import UploadFile
 
 from app.config import get_settings
 from app.deps import enforce_rate_limit, scan_cache, sha256_hex
 from app.schemas import ScanRequest, ScanResult
+from app.security import AuthUser, require_user
 from app.services.gemini import AIServiceError, generate_scan
 from app.services.transform import UnreadablePageError, build_scan_result
 
@@ -109,8 +110,11 @@ async def _read_request(request: Request) -> tuple[bytes, str, str | None]:
 
 
 @router.post("/scan", response_model=ScanResult)
-async def scan_book(request: Request) -> ScanResult:
-    enforce_rate_limit(request)
+async def scan_book(
+    request: Request,
+    user: AuthUser | None = Depends(require_user),
+) -> ScanResult:
+    enforce_rate_limit(request, user)
     settings = get_settings()
 
     content_length = request.headers.get("content-length", "")

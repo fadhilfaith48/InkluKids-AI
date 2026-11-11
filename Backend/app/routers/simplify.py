@@ -4,11 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.config import get_settings
 from app.deps import enforce_rate_limit, explain_cache, sha256_hex, text_cache_key
 from app.schemas import ScanResult, SimplifyRequest
+from app.security import AuthUser, require_user
 from app.services.gemini import AIServiceError, generate_text_lesson
 from app.services.transform import UnreadablePageError, build_scan_result
 
@@ -16,8 +17,12 @@ router = APIRouter(prefix="/api", tags=["simplify"])
 
 
 @router.post("/simplify", response_model=ScanResult)
-def simplify_text(request: Request, payload: SimplifyRequest) -> ScanResult:
-    enforce_rate_limit(request)
+def simplify_text(
+    request: Request,
+    payload: SimplifyRequest,
+    user: AuthUser | None = Depends(require_user),
+) -> ScanResult:
+    enforce_rate_limit(request, user)
     settings = get_settings()
 
     text = payload.text.strip()

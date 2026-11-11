@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.config import get_settings
 from app.deps import enforce_rate_limit, explain_cache, text_cache_key
 from app.schemas import ExplainRequest, ExplanationResult
+from app.security import AuthUser, require_user
 from app.services.gemini import AIServiceError, generate_explanation
 from app.services.source_validator import best_quote_from_ocr, validate_source_quote
 from app.services.transform import build_explanation
@@ -40,8 +41,12 @@ def _demo_explanation(payload: ExplainRequest) -> ExplanationResult:
 
 
 @router.post("/explain", response_model=ExplanationResult)
-def explain(request: Request, payload: ExplainRequest) -> ExplanationResult:
-    enforce_rate_limit(request)
+def explain(
+    request: Request,
+    payload: ExplainRequest,
+    user: AuthUser | None = Depends(require_user),
+) -> ExplanationResult:
+    enforce_rate_limit(request, user)
     settings = get_settings()
 
     point_text = payload.point_text.strip()

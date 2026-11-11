@@ -7,6 +7,7 @@ import hashlib
 from fastapi import HTTPException, Request
 
 from app.config import get_settings
+from app.security import AuthUser
 from app.services.cache import TTLCache
 from app.services.rate_limit import RateLimiter
 
@@ -35,8 +36,14 @@ def client_key(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-def enforce_rate_limit(request: Request) -> None:
-    allowed, retry_after = limiter.hit(client_key(request))
+def enforce_rate_limit(request: Request, user: AuthUser | None = None) -> None:
+    """Batasi permintaan per akun bila login, atau per IP untuk tamu.
+
+    Kunci per akun mencegah satu pengguna berpindah IP untuk mengakali batas,
+    dan mencegah pengguna sah ikut terkunci karena IP bersama (sekolah/WiFi).
+    """
+    key = f"user:{user.id}" if user is not None else client_key(request)
+    allowed, retry_after = limiter.hit(key)
     if not allowed:
         raise HTTPException(
             status_code=429,

@@ -43,7 +43,16 @@ class Settings(BaseSettings):
     )
     allowed_origin_regex: str = r"https://.*\.vercel\.app"
 
-    # Rate limit sederhana per IP
+    # Verifikasi token Supabase (JWT) untuk endpoint AI.
+    # - off      : token diabaikan (hanya untuk pengujian lokal).
+    # - optional : token diverifikasi bila dikirim; tamu tetap boleh memakai demo.
+    # - required : semua permintaan wajib membawa token Supabase yang sah.
+    auth_mode: str = "optional"
+    supabase_url: str = ""
+    supabase_jwt_secret: str = ""
+    supabase_jwt_audience: str = "authenticated"
+
+    # Rate limit sederhana per akun (atau per IP bila belum login)
     rate_limit_requests: int = 12
     rate_limit_window_seconds: int = 60
 
@@ -61,6 +70,11 @@ class Settings(BaseSettings):
     @property
     def allowed_origins_list(self) -> list[str]:
         return [item.strip() for item in self.allowed_origins.split(",") if item.strip()]
+
+    @property
+    def auth_mode_normalized(self) -> str:
+        mode = self.auth_mode.strip().lower()
+        return mode if mode in {"off", "optional", "required"} else "optional"
 
 
 @lru_cache

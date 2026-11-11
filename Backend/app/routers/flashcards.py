@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.config import get_settings
 from app.deps import enforce_rate_limit, explain_cache, text_cache_key
 from app.schemas import Flashcard, FlashcardRequest
+from app.security import AuthUser, require_user
 from app.services.gemini import AIServiceError, generate_flashcard
 from app.services.transform import build_flashcard
 
@@ -14,8 +15,12 @@ router = APIRouter(prefix="/api", tags=["flashcards"])
 
 
 @router.post("/flashcards", response_model=Flashcard)
-def create_flashcard(request: Request, payload: FlashcardRequest) -> Flashcard:
-    enforce_rate_limit(request)
+def create_flashcard(
+    request: Request,
+    payload: FlashcardRequest,
+    user: AuthUser | None = Depends(require_user),
+) -> Flashcard:
+    enforce_rate_limit(request, user)
     settings = get_settings()
 
     word = payload.word.strip()

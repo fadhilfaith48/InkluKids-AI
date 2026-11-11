@@ -34,7 +34,7 @@ app.add_middleware(
     allow_origin_regex=settings.allowed_origin_regex,
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type", "Accept", "X-Requested-With"],
+    allow_headers=["Content-Type", "Accept", "X-Requested-With", "Authorization"],
     expose_headers=["Retry-After"],
     max_age=600,
 )
