@@ -1,6 +1,7 @@
 # Konfigurasi deploy backend FastAPI ke Render.
-# Tidak ada rahasia di file ini. Nilai GEMINI_API_KEY dan ALLOWED_ORIGINS
-# diisi lewat dashboard Render (sync: false).
+# Tidak ada rahasia di file ini. Nilai GEMINI_API_KEY, ALLOWED_ORIGINS, dan
+# SUPABASE_URL diisi lewat dashboard Render (sync: false).
+# AUTH_MODE=optional: token diverifikasi bila ada, tamu tetap boleh (demo aman).
 services:
   - type: web
     name: pahamin-inklusif-api
@@ -24,5 +25,9 @@ services:
         sync: false
       - key: ALLOWED_ORIGIN_REGEX
         value: "https://.*\\.vercel\\.app"
+      - key: AUTH_MODE
+        value: optional
+      - key: SUPABASE_URL
+        sync: false
       - key: ENABLE_DEMO_FALLBACK
         value: "true"
