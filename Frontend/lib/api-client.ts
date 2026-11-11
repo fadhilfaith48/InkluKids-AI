@@ -1,4 +1,5 @@
 import { ScanResult, ExplanationResult } from '@/types';
+import { getSupabase, isSupabaseConfigured } from './supabase';
 
 /**
  * Basis URL backend FastAPI.
@@ -14,10 +15,30 @@ interface ErrorPayload {
   detail?: string;
 }
 
+/**
+ * Ambil token akses Supabase bila pengguna sedang login.
+ *
+ * Backend memverifikasi token ini (JWT) supaya endpoint AI tidak bisa dipakai
+ * pihak lain untuk menghabiskan kuota Gemini. Tamu tetap boleh memakai demo:
+ * tanpa sesi, header tidak dikirim dan backend berjalan di mode `optional`.
+ */
+async function authHeaders(): Promise<Record<string, string>> {
+  if (!isSupabaseConfigured) return {};
+
+  try {
+    const { data } = await getSupabase().auth.getSession();
+    const token = data.session?.access_token;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    // Gagal membaca sesi tidak boleh memblokir demo tamu.
+    return {};
+  }
+}
+
 async function postJson<T>(path: string, body: unknown, fallbackMessage: string): Promise<T> {
   const requestInit: RequestInit = {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
     body: JSON.stringify(body),
   };
 
