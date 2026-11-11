@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   BookOpen,
   Eye,
@@ -56,7 +56,7 @@ import {
 
 export default function App() {
   // Akun Supabase (bila sudah login)
-  const { profile, signOut } = useAuth();
+  const { profile, loading: authLoading, signOut, saveSettings } = useAuth();
 
   // Navigation & Page State
   const [activeTab, setActiveTab] = useState<'home' | 'learn' | 'history' | 'settings'>('home');
@@ -109,13 +109,32 @@ export default function App() {
     soundEnabled: true,
   });
 
+  // Terapkan pengaturan yang tersimpan di profil Supabase satu kali per akun.
+  const settingsHydratedFor = useRef<string | null>(null);
+  useEffect(() => {
+    if (!profile?.id) {
+      settingsHydratedFor.current = null;
+      return;
+    }
+    if (settingsHydratedFor.current === profile.id) return;
+    settingsHydratedFor.current = profile.id;
+
+    if (profile.settings && typeof profile.settings === 'object') {
+      setSettings((prev) => ({ ...prev, ...profile.settings }));
+    }
+  }, [profile]);
+
   // Mascot dynamic messages
   const [mascotMessage, setMascotMessage] = useState(
     'Halo teman! Mau belajar apa hari ini?'
   );
 
   // Muat materi: localStorage (mode lokal) atau Supabase (mode supabase).
+  // Tunggu pemulihan sesi selesai agar permintaan pertama tidak dikirim tanpa
+  // token (menyebabkan 401 di Console).
   useEffect(() => {
+    if (authLoading) return;
+
     let active = true;
 
     listMaterials().then((list) => {
@@ -129,7 +148,7 @@ export default function App() {
     return () => {
       active = false;
     };
-  }, [profile?.id]);
+  }, [profile?.id, authLoading]);
 
   // Ikuti peran akun Supabase: guru → Mode Guru, siswa → Mode Siswa.
   // Tamu (belum login) tetap memakai mode demo seperti sebelumnya.
@@ -179,7 +198,11 @@ export default function App() {
   };
 
   const updateSettings = (newSettings: Partial<AccessibilitySettings>) => {
-    setSettings((prev) => ({ ...prev, ...newSettings }));
+    const next = { ...settings, ...newSettings };
+    setSettings(next);
+    if (profile?.id) {
+      void saveSettings(next);
+    }
   };
 
   const handleToggleRole = () => {

@@ -162,6 +162,12 @@ export interface SaveMaterialResult {
 export async function listMaterials(): Promise<ScanResult[]> {
   if (!isRemote) return getHistory();
 
+  // Jangan menembak Supabase sebelum sesi login tersedia. Tanpa token, RLS
+  // menolak permintaan (401) dan Console dipenuhi peringatan yang menakutkan
+  // padahal aplikasi hanya perlu memakai data lokal untuk tamu.
+  const userId = await currentUserId();
+  if (!userId) return getHistory();
+
   try {
     const supabase = getSupabase();
     const { data, error } = await supabase
