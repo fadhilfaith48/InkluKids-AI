@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const apiKey = process.env.GEMINI_API_KEY || '';
-const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
 export const SYSTEM_PROMPT_SCAN = `
 Kamu adalah pendamping belajar untuk anak penyandang disabilitas usia sekolah (disleksia, ADHD, tunarungu, autisme, tunanetra/low vision).
