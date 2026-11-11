@@ -15,6 +15,8 @@ os.environ["GEMINI_API_KEY"] = ""
 os.environ["RATE_LIMIT_REQUESTS"] = "100"
 os.environ["RATE_LIMIT_WINDOW_SECONDS"] = "60"
 os.environ["ENABLE_DEMO_FALLBACK"] = "true"
+os.environ["AUTH_MODE"] = "off"
+os.environ["SUPABASE_URL"] = ""
 
 from app.deps import explain_cache, limiter, scan_cache  # noqa: E402
 
