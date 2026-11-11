@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGeminiModel, SYSTEM_PROMPT_EXPLAIN } from '@/lib/gemini';
+import { rateLimitRequest, RATE_LIMIT_MESSAGE } from '@/lib/server-rate-limit';
 import { validateSourceQuote } from '@/lib/source-validator';
 import { ExplanationResult } from '@/types';
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimitRequest(req);
+    if (!limited.ok) {
+      return NextResponse.json(
+        { error: RATE_LIMIT_MESSAGE },
+        { status: 429, headers: { 'Retry-After': String(limited.retryAfter) } }
+      );
+    }
+
     const body = await req.json();
     const { pointText, ocrText, requestType } = body;
 

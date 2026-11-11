@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getGeminiModel, SYSTEM_PROMPT_SCAN } from '@/lib/gemini';
+import { rateLimitRequest, RATE_LIMIT_MESSAGE } from '@/lib/server-rate-limit';
 import { validateSourceQuote } from '@/lib/source-validator';
 import { ScanResult } from '@/types';
 
@@ -7,6 +8,14 @@ export const maxDuration = 60; // Allow sufficient time for vision OCR model
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimitRequest(req);
+    if (!limited.ok) {
+      return NextResponse.json(
+        { error: RATE_LIMIT_MESSAGE },
+        { status: 429, headers: { 'Retry-After': String(limited.retryAfter) } }
+      );
+    }
+
     const body = await req.json();
     const { imageBase64, mimeType, imagePreview } = body;
 
