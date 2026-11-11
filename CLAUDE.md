@@ -45,11 +45,12 @@ Supabase: isi `Frontend/.env.local` dari `.env.example`
 `NEXT_PUBLIC_DATA_MODE`). Jalankan SQL skema/RLS di Supabase SQL Editor sebelum
 memakai mode `supabase`. Jangan pernah memakai `service_role` di frontend.
 
-Status fitur yang belum selesai (per 9 November 2026): antarmuka daftar siswa
-binaan, pemindaian atas nama siswa, registrasi siswa, Supabase Storage,
-verifikasi JWT di FastAPI, RPC verifikasi guru, dan file SQL skema lengkap di
-repository. Jangan menulis di dokumentasi bahwa fitur tersebut sudah tersedia
-sampai kodenya benar-benar ada.
+Status fitur yang belum selesai (per 11 November 2026): antarmuka daftar siswa
+binaan, pemindaian atas nama siswa, Supabase Storage, dan RPC verifikasi guru.
+Registrasi siswa, `Docs/SQL-schema.sql`, `Docs/SQL-security-hardening.sql`, dan
+verifikasi JWT di FastAPI (`AUTH_MODE=optional`) sudah tersedia. Jangan menulis
+di dokumentasi bahwa fitur yang belum selesai sudah tersedia sampai kodenya
+benar-benar ada.
 
 ## Aturan Wajib
 
@@ -61,6 +62,13 @@ sampai kodenya benar-benar ada.
    backend lain. Supabase dipakai untuk Auth/PostgreSQL/(rencana) Storage, bukan
    sebagai layanan backend baru. RLS wajib aktif di semua tabel dan setiap tabel
    baru harus punya kebijakan.
+   Endpoint AI wajib memakai dependency `require_user` dan
+   `enforce_rate_limit(request, user)`. Jangan menambah endpoint AI baru tanpa
+   verifikasi token. `AUTH_MODE` default `optional`; `required` untuk produksi
+   ketat.
+   Klien tidak boleh bisa mengubah `profiles.role`. Jangan memberi `grant update`
+   tingkat tabel pada `profiles`; gunakan izin kolom (`name`, `grade`,
+   `accessibility_settings`) seperti di `Docs/SQL-security-hardening.sql`.
 5. **Privasi anak:** jangan menambah pengumpulan data pribadi. Jangan mencatat isi gambar atau teks ke log. Riwayat harus bisa dihapus pengguna. Gambar hanya boleh disimpan di bucket privat dengan signed URL (rencana Storage).
 6. **Aksesibilitas bukan opsional:** HTML semantik, label ARIA, fokus keyboard, kontras, target sentuh minimal 44 px, satu aksi utama per layar.
 7. **Ramah anak:** tanpa streak harian, hadiah tanpa batas, atau notifikasi bujukan. Animasi harus bisa dimatikan (Mode Tenang).

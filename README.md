@@ -61,18 +61,21 @@ Setiap penjelasan AI punya tombol **Lihat Sumber** yang menampilkan kutipan teks
 | Pencarian suara pada riwayat (Chrome/Edge) | Tersedia |
 | Riwayat materi lokal (maks. 20 materi) | Tersedia |
 | Endpoint flashcard AI | Tersedia (UI memakai flashcard hasil scan) |
-| Login/akun Supabase | Tersedia (peran guru/siswa; belum ada signup publik) |
-| Sinkronisasi lintas perangkat | Tersedia untuk materi, verifikasi, dan skor kuis; Supabase Storage belum |
-| Registrasi akun siswa | **Direncanakan** (belum ada di kode) |
+| Login/akun Supabase | Tersedia (peran guru/siswa) |
+| Registrasi akun siswa (email + password) | Tersedia (role selalu `siswa`; butuh `Docs/SQL-schema.sql`) |
+| Simpan pengaturan aksesibilitas ke profil | Tersedia (kolom `profiles.accessibility_settings`) |
+| Sinkronisasi lintas perangkat | Tersedia untuk materi, verifikasi, skor kuis, dan pengaturan; Supabase Storage belum |
 | Penyimpanan gambar di Supabase Storage | **Direncanakan** (gambar saat ini hanya diproses untuk OCR) |
-| Verifikasi JWT Supabase di backend | **Direncanakan** (saat ini rate limit per IP) |
+| Verifikasi JWT Supabase di backend | Tersedia (`AUTH_MODE=optional`; token palsu ditolak, tamu tetap boleh demo) |
+| Rate limit endpoint AI | Tersedia (per akun bila login, per IP untuk tamu) |
 | RPC verifikasi guru (tanpa `UPDATE scans` bebas) | **Direncanakan** |
-| File SQL skema + RLS lengkap di repository | **Direncanakan** (baru ada SQL materi guru) |
+| File SQL skema + RLS lengkap di repository | Tersedia (`Docs/SQL-schema.sql`) |
+| Pengerasan anti-eskalasi peran | Tersedia (`Docs/SQL-security-hardening.sql`) |
 
 Rincian batasan ada di [PRD](Docs/Archive/PRD%20InkluKids%20AI.md) dan [Arsitektur](Docs/ARCHITECTURE.md).
 
 > **Catatan status:** baris **Direncanakan** adalah target yang belum ada di kode
-> per 9 November 2026. Jangan menulis "Tersedia" untuk fitur tersebut sampai
+> per 11 November 2026. Jangan menulis "Tersedia" untuk fitur tersebut sampai
 > implementasinya selesai dan diuji.
 
 ## 4. Tech Stack
@@ -127,9 +130,11 @@ sedang tidak berjalan, Route Handler Next.js (`/api/scan`, `/api/explain`,
    GEMINI_API_KEY=<kunci asli>
    GEMINI_MODEL=gemini-3.6-flash
 
-   # Rencana verifikasi JWT Supabase (belum dipakai kode saat ini)
-   # SUPABASE_URL=https://<project>.supabase.co
-   # SUPABASE_JWT_AUD=authenticated
+   # Verifikasi token Supabase (JWT) untuk endpoint AI.
+   # optional = token diverifikasi bila ada, tamu tetap boleh (demo aman).
+   AUTH_MODE=optional
+   SUPABASE_URL=https://<project>.supabase.co
+   # SUPABASE_JWT_SECRET=   ← hanya untuk project HS256 lama
    ```
 
    Jalankan:
@@ -203,9 +208,14 @@ Tanpa login, aplikasi tetap bisa dipakai sebagai demo lokal. Setelah masuk
 sebagai siswa, tombol **Mode Guru** disembunyikan. Setelah masuk sebagai guru,
 guru dapat beralih antara tampilan guru dan siswa.
 
-> **Registrasi publik belum tersedia.** Saat ini akun dibuat lewat dashboard
-> Supabase. Registrasi siswa (dengan persetujuan orang tua/guru) adalah target
-> yang belum diimplementasikan.
+Siswa baru dapat memakai tab **Daftar** di jendela login. Role akun baru selalu
+`siswa`; akun guru tetap dibuat oleh pengelola lewat dashboard Supabase. Jalankan
+`Docs/SQL-schema.sql` agar trigger profil otomatis dan kolom pengaturan tersedia.
+Bila verifikasi email diaktifkan di Supabase, siswa perlu mengonfirmasi email
+sebelum masuk.
+
+> **Persetujuan orang tua/guru** untuk pengguna di bawah umur belum menjadi alur
+> digital; pendamping tetap mendampingi saat pendaftaran.
 
 ### Fitur Materi Kelas (guru)
 
@@ -265,8 +275,9 @@ Pesan error kuota sudah dibedakan dari gangguan jaringan.
 │   ├── types/
 │   └── package.json
 ├── Docs/                      # dokumentasi teknis
-│   ├── SQL-teacher-materials.sql  # SQL wajib untuk fitur materi guru
-│   ├── SQL-schema.sql         # (rencana) skema + RLS lengkap
+│   ├── SQL-schema.sql         # skema + RLS + trigger lengkap (jalankan sekali)
+│   ├── SQL-security-hardening.sql  # anti-eskalasi peran + izin kolom
+│   ├── SQL-teacher-materials.sql  # SQL ringkas untuk kolom source_scan_id
 │   ├── ARCHITECTURE.md
 │   └── AI.md
 ├── .env.example
@@ -290,6 +301,10 @@ Pesan error kuota sudah dibedakan dari gangguan jaringan.
    → **Simpan & Bagikan ke Siswa**.
 9. **Siswa:** refresh → materi guru muncul di **Materi Saya** → selesaikan kuis.
 10. **Guru:** refresh → badge `Kuis: x/y ★` muncul pada materi siswa.
+11. **Siswa baru:** klik **Masuk** → tab **Daftar** → isi nama, email, password →
+    akun langsung memakai role `siswa`.
+12. **Pengaturan:** ubah ukuran teks atau Mode Tenang → refresh → pengaturan
+    tetap tersimpan setelah login.
 
 Bila kuota AI bermasalah, gunakan **Contoh Halaman** pada modal pindai atau
 **Buat poin tanpa AI** pada modal materi guru.
@@ -298,7 +313,7 @@ Bila kuota AI bermasalah, gunakan **Contoh Halaman** pada modal pindai atau
 
 - Deskripsi isyarat berupa teks, **bukan** video atau avatar bahasa isyarat.
 - Mode Suara adalah dukungan dasar; pemotretan mandiri oleh pengguna tunanetra belum didukung penuh.
-- Pada mode `supabase`, materi/verifikasi/skor kuis tersinkron; mode `local` tetap tersedia sebagai cadangan demo.
+- Pada mode `supabase`, materi/verifikasi/skor kuis/pengaturan tersinkron; mode `local` tetap tersedia sebagai cadangan demo.
 - Gambar hanya diproses untuk OCR dan tidak disimpan permanen. Supabase Storage (bucket privat + signed URL) masih **direncanakan**.
 - Cache hash dan rate limit disimpan di memori proses (hilang saat restart).
 - Endpoint `POST /api/flashcards` sudah tersedia, tetapi UI Mode Visual masih memakai flashcard dari hasil scan atau materi contoh.
@@ -306,23 +321,24 @@ Bila kuota AI bermasalah, gunakan **Contoh Halaman** pada modal pindai atau
 - Hasil AI dapat keliru. Setiap poin disertai Lihat Sumber, dan materi sains disarankan diperiksa guru.
 - Mode Guru, verifikasi, dan Kuis Ceria sudah memakai login Supabase. Belum ada dashboard daftar siswa terpisah.
 - Materi buatan guru dibagikan sebagai **salinan per siswa**; guru melihat master dan salinannya di daftar materi.
-- Fitur materi guru membutuhkan `Docs/SQL-teacher-materials.sql` yang dijalankan sekali di Supabase.
-- Registrasi publik belum tersedia; gunakan akun demo. Registrasi siswa (dengan persetujuan orang tua/guru) masih **direncanakan**.
-- Pengaturan aksesibilitas belum disimpan ke profil Supabase (hanya berlaku selama sesi).
-- Backend AI belum memverifikasi JWT Supabase; endpoint AI masih dilindungi rate limit per IP. Verifikasi JWT masih **direncanakan**.
+- Fitur materi guru dan registrasi siswa membutuhkan `Docs/SQL-schema.sql` (atau `Docs/SQL-teacher-materials.sql` untuk proyek lama) yang dijalankan sekali di Supabase.
+- Registrasi siswa tersedia lewat tab **Daftar**; akun guru tetap dibuat pengelola. Persetujuan orang tua/guru belum berupa alur digital.
+- Pengaturan aksesibilitas disimpan ke `profiles.accessibility_settings` setelah login; mode tamu memakai pengaturan sesi.
+- Backend AI memverifikasi token Supabase (`AUTH_MODE=optional`): token tidak valid ditolak 401, tamu tanpa token tetap boleh memakai demo. Set `AUTH_MODE=required` bila semua pemakaian wajib login.
+- Rate limit endpoint AI dihitung per akun setelah login, dan per IP untuk tamu. Route handler Next.js (cadangan) punya rate limit tambahan per IP.
+- File `Docs/SQL-security-hardening.sql` menutup celah siswa menaikkan peran sendiri (`role`), memakai trigger + izin kolom terbatas. Jalankan sekali di Supabase.
 - Perubahan poin oleh guru masih membutuhkan policy `scans_update_teacher`. Targetnya, perubahan hanya lewat RPC verifikasi agar guru tidak punya akses `UPDATE scans` bebas.
-- Skema + RLS lengkap belum tersimpan di repository; baru `Docs/SQL-teacher-materials.sql`. File `Docs/SQL-schema.sql` masih **direncanakan**.
+- `Docs/SQL-schema.sql` berisi 5 tabel, trigger profil, RLS, dan index. Policy Storage belum ada karena bucket gambar belum dipakai.
+- `Docs/SQL-security-hardening.sql` menutup celah eskalasi peran: klien hanya boleh mengubah `name`, `grade`, dan `accessibility_settings` pada profilnya sendiri.
 - Kuota Gemini tier gratis terbatas (sekitar 20 permintaan/hari per proyek).
 
-### Rencana sebelum submission (9–14 November 2026)
+### Rencana sebelum submission (11–14 November 2026)
 
-1. Registrasi siswa di `lib/auth.tsx` + `LoginModal.tsx`, role selalu `siswa`.
-2. Supabase Storage: bucket privat `scans`, `lib/storage.ts`, signed URL.
-3. Verifikasi JWT Supabase di FastAPI (JWKS + `aud` + `exp`) dan header
-   `Authorization` dari frontend.
-4. RPC verifikasi guru agar perubahan poin tidak memakai `UPDATE scans` bebas.
-5. `Docs/SQL-schema.sql` berisi 5 tabel, trigger profil, RLS, index, dan policy
-   Storage.
+1. ~~Registrasi siswa di `lib/auth.tsx` + `LoginModal.tsx`, role selalu `siswa`.~~ **Selesai.**
+2. ~~`Docs/SQL-schema.sql` berisi 5 tabel, trigger profil, RLS, dan index.~~ **Selesai** (policy Storage menyusul).
+3. Supabase Storage: bucket privat `scans`, `lib/storage.ts`, signed URL.
+4. ~~Verifikasi JWT Supabase di FastAPI (JWKS + `aud` + `exp`) dan header `Authorization` dari frontend.~~ **Selesai** (`AUTH_MODE=optional`).
+5. RPC verifikasi guru agar perubahan poin tidak memakai `UPDATE scans` bebas.
 6. Uji RLS lintas akun, uji JWT, `npm run build`, `pytest`, dan deploy ulang.
 
 ## 9. Privasi, Etika, dan Efisiensi
@@ -339,8 +355,9 @@ Bila kuota AI bermasalah, gunakan **Contoh Halaman** pada modal pindai atau
 | [PRD](Docs/Archive/PRD%20InkluKids%20AI.md) | Product Requirements Document |
 | [Arsitektur](Docs/ARCHITECTURE.md) | Arsitektur dan alur data |
 | [AI](Docs/AI.md) | Prompt, skema JSON, validasi sumber |
-| [SQL Materi Guru](Docs/SQL-teacher-materials.sql) | SQL Supabase untuk fitur materi guru dan berbagi ke siswa |
-| SQL Skema (rencana) | `Docs/SQL-schema.sql`: 5 tabel, trigger profil, RLS, index, policy Storage |
+| [SQL Skema](Docs/SQL-schema.sql) | 5 tabel, trigger profil, RLS, index, dan kebijakan akses |
+| [SQL Pengerasan Keamanan](Docs/SQL-security-hardening.sql) | Anti-eskalasi peran + izin kolom profil |
+| [SQL Materi Guru](Docs/SQL-teacher-materials.sql) | SQL ringkas untuk fitur materi guru dan berbagi ke siswa |
 | [Backend README](Backend/README.md) | Cara menjalankan API, endpoint, dan pengujian |
 | [PRIVACY.md](PRIVACY.md) | Kebijakan privasi |
 

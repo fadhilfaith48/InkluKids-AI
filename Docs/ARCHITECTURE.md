@@ -21,13 +21,13 @@ Supabase gagal karena jaringan atau mode tamu, lapisan ini kembali ke
 `localStorage`. Error otorisasi (401/403/RLS) tidak boleh dianggap sebagai
 gangguan jaringan dan harus ditampilkan sebagai pesan.
 
-Status integrasi per 9 November 2026:
+Status integrasi per 11 November 2026:
 
-- Sudah tersedia: login Supabase, profil/role dari tabel `profiles`, sinkronisasi
-  materi, verifikasi guru, materi guru + AI, berbagi ke siswa, dan hasil kuis.
+- Sudah tersedia: login Supabase, registrasi siswa, profil/role dari tabel
+  `profiles`, sinkronisasi materi, verifikasi guru, materi guru + AI, berbagi ke
+  siswa, hasil kuis, serta verifikasi JWT Supabase di backend (`AUTH_MODE=optional`).
 - Belum tersedia: antarmuka daftar siswa binaan, pemindaian atas nama siswa,
-  registrasi siswa, Supabase Storage untuk gambar, verifikasi JWT Supabase di
-  FastAPI, RPC verifikasi guru, dan file SQL skema lengkap di repository.
+  Supabase Storage untuk gambar, dan RPC verifikasi guru.
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,7 @@ flowchart LR
     A -->|"2. login"| S["Supabase Auth"]
     S -->|"3. access token (JWT)"| A
     A -->|"4. POST /api/scan + Bearer token"| B["FastAPI<br/>/api/scan"]
-    B -->|"5. verifikasi JWT (target)"| S
+    B -->|"5. verifikasi JWT (JWKS)"| S
     B -->|"6. prompt + gambar"| C["Gemini API"]
     C -->|"7. JSON terstruktur"| B
     B -->|"8. validasi kutipan"| B
@@ -54,9 +54,10 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 2. Pengguna memotret atau mengunggah halaman buku.
 3. Browser mengompres gambar (maksimal sisi 1200 px, JPEG kualitas 0,82).
 4. Browser memanggil `POST /api/scan` di backend dengan `imageBase64`, `mimeType`,
-   dan header `Authorization: Bearer <access token>` (target JWT).
+   dan header `Authorization: Bearer <access token>` bila pengguna login.
 5. Backend memvalidasi tipe gambar (JPG/PNG/WEBP, dideteksi dari isi file),
-   ukuran (maks. 10 MB), rate limit, token, dan keberadaan `GEMINI_API_KEY`.
+   ukuran (maks. 10 MB), rate limit per akun/IP, token Supabase, dan keberadaan
+   `GEMINI_API_KEY`.
 6. Backend memanggil Gemini dengan prompt dan meminta keluaran JSON terstruktur
    (lihat [AI.md](AI.md)).
 7. Setiap `source_quote` dicocokkan dengan `ocr_text` memakai validator yang sama
@@ -77,10 +78,10 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 | Materi buatan guru + AI | `POST /api/simplify` | Teks guru → poin, glosarium, flashcard; tanpa menambah fakta di luar teks |
 | Data contoh | `GET /api/demo` | Materi cadangan untuk demo dan pengujian integrasi |
 | Riwayat materi | `Frontend/lib/materials.ts` | Pilih sumber data: Supabase (`NEXT_PUBLIC_DATA_MODE=supabase`) atau `localStorage` (default, maks. 20 materi) |
-| Login & peran | `Frontend/lib/auth.tsx` + `LoginModal.tsx` | Supabase Auth; profil dari tabel `profiles`; Mode Guru mengikuti role. Registrasi siswa **direncanakan** |
-| Registrasi siswa | `Frontend/lib/auth.tsx` + `LoginModal.tsx` | **Direncanakan:** `signUp` Supabase, persetujuan orang tua/guru, role selalu siswa |
+| Login & peran | `Frontend/lib/auth.tsx` + `LoginModal.tsx` | Supabase Auth; profil dari tabel `profiles`; Mode Guru mengikuti role |
+| Registrasi siswa | `Frontend/lib/auth.tsx` + `LoginModal.tsx` | Tersedia: `signUp` Supabase, role selalu `siswa` |
 | Penyimpanan gambar | `Frontend/lib/storage.ts` (rencana) | **Direncanakan:** bucket privat `scans`, path `{user_id}/{scan_id}.jpg`, signed URL |
-| Verifikasi JWT | `Backend/app/deps.py` (rencana) | **Direncanakan:** verifikasi JWKS Supabase, `aud`, `exp`; rate limit per pengguna |
+| Verifikasi JWT | `Backend/app/security.py` + `Frontend/lib/api-client.ts` | Tersedia: JWKS Supabase (ES256/RS256), `aud`, `exp`; `AUTH_MODE=optional`; rate limit per akun |
 | Mode Belajar | `Frontend/app/page.tsx` | Satu hasil scan disajikan dalam Mode Baca, Visual, atau Suara tanpa memanggil AI |
 | Text-to-Speech | Web Speech API | `speechSynthesis` Bahasa Indonesia |
 | Pencarian suara | `Frontend/app/components/HistoryView.tsx` | `SpeechRecognition` id-ID (Chrome/Edge) + input ketik |
@@ -111,7 +112,9 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 | `Frontend/lib/history.ts` | Implementasi `localStorage` yang dipakai mode lokal |
 | `Frontend/lib/seed-data.ts` | Data contoh untuk demo |
 | `Backend/app/main.py` | FastAPI, CORS, security header, exception handler |
-| `Backend/app/deps.py` | Rate limit, cache, helper hash; rencana dependency verifikasi JWT |
+| `Backend/app/deps.py` | Rate limit (per akun/IP), cache, helper hash |
+| `Backend/app/security.py` | Verifikasi token Supabase (JWKS/HS256) dan dependency `require_user` |
+| `Frontend/lib/server-rate-limit.ts` | Rate limit per IP untuk Route Handler cadangan Next.js |
 | `Backend/app/routers/scan.py` | Endpoint scan, validasi gambar, cache |
 | `Backend/app/routers/simplify.py` | Endpoint penyederhanaan teks materi guru |
 | `Backend/app/routers/explain.py` | Endpoint AI tutor + fallback tanpa API key |
@@ -119,7 +122,7 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 | `Backend/app/services/gemini.py` | Klien Gemini, prompt, retry |
 | `Backend/app/services/source_validator.py` | Validasi kutipan (port dari TypeScript) |
 | `Backend/app/services/cache.py` | Cache TTL berbasis hash gambar |
-| `Backend/app/services/rate_limit.py` | Rate limit per IP (rencana: per pengguna setelah JWT) |
+| `Backend/app/services/rate_limit.py` | Rate limit sliding window (kunci per akun atau IP) |
 
 ## 5. Keputusan Teknis
 
@@ -135,7 +138,7 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 | RLS di semua tabel | Siswa hanya data sendiri; guru hanya siswa binaan; guru tidak punya `UPDATE scans` bebas |
 | Verifikasi guru lewat alur verifikasi | Perubahan poin siswa hanya melalui RPC/transaksi yang memeriksa `guardianships` |
 | Supabase Storage (rencana) | Gambar tidak disimpan sebagai base64 di database; bucket privat + signed URL |
-| JWT di backend (rencana) | Endpoint AI tidak dapat dipanggil tanpa token Supabase yang valid |
+| JWT di backend | Endpoint AI tidak dapat dipanggil dengan token palsu; tamu mengikuti `AUTH_MODE` |
 | Verifikasi guru & skor kuis | Mode lokal menyimpan perangkat; mode Supabase menyinkronkan lewat `scans`, `teacher_verifications`, `quiz_results` dengan RLS |
 | Kompresi gambar di klien | Menghemat bandwidth dan mempercepat unggahan |
 | Cache hash + rate limit di memori | Cukup untuk satu proses demo; mudah diganti Redis saat produksi |
@@ -147,7 +150,7 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 - Input divalidasi di server: tipe string, MIME gambar, ukuran gambar, panjang
   teks, nilai enum `requestType`.
 - CORS dibatasi pada `localhost:3000` dan domain Vercel; header `Authorization`
-  perlu diizinkan saat JWT diaktifkan.
+  diizinkan untuk membawa token Supabase.
 - Pesan error ke pengguna bersifat umum; log tidak memuat isi gambar atau teks.
 - Supabase Auth dipakai untuk login siswa/guru. Role dibaca dari tabel
   `profiles`; pendaftaran publik hanya membuat akun siswa.
@@ -155,10 +158,14 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
   frontend maupun di variabel `NEXT_PUBLIC_*`.
 - RLS wajib aktif di semua tabel: siswa hanya data miliknya, guru hanya data
   siswa yang terhubung di `guardianships`.
+- Klien hanya boleh mengubah `name`, `grade`, dan `accessibility_settings` pada
+  profilnya sendiri. Trigger `prevent_profile_role_change` + izin kolom menolak
+  perubahan `role` dari klien (lihat `Docs/SQL-security-hardening.sql`).
 - Guru tidak boleh `UPDATE scans` secara langsung. Perubahan poin siswa hanya
   lewat alur verifikasi (RPC `verify_scan`/setara) yang memeriksa relasi guru-siswa.
-- Verifikasi JWT Supabase di FastAPI adalah target yang belum diterapkan; sampai
-  selesai, endpoint AI masih dilindungi rate limit per IP.
+- Endpoint AI memverifikasi token Supabase (JWKS ES256/RS256, `aud`, `exp`).
+  `AUTH_MODE=optional` menolak token palsu/kedaluwarsa namun tetap mengizinkan
+  tamu untuk demo; `required` mewajibkan login. Rate limit dihitung per akun.
 - Gambar akan disimpan di bucket privat dengan signed URL (target Storage).
   Saat ini gambar hanya diproses untuk OCR dan tidak disimpan permanen.
 - Riwayat dapat dihapus pengguna dari antarmuka; data Supabase mengikuti RLS dan
@@ -169,7 +176,7 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 | Lingkungan | Cara | Catatan |
 |---|---|---|
 | Pengembangan | `uvicorn` di `Backend` + `npm run dev` di `Frontend` | Frontend memanggil `http://localhost:8000`; isi env Supabase di `Frontend/.env.local` |
-| Submission | Vercel (root `Frontend`) + hosting backend | Atur `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_DATA_MODE`, dan `GEMINI_API_KEY` di dashboard. Backend: `GEMINI_API_KEY` + rencana `SUPABASE_URL` untuk JWT |
+| Submission | Vercel (root `Frontend`) + hosting backend | Atur `NEXT_PUBLIC_API_BASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_DATA_MODE`, dan `GEMINI_API_KEY` di dashboard. Backend: `GEMINI_API_KEY`, `SUPABASE_URL`, `AUTH_MODE` |
 | Grand Final | `uvicorn` + `npm run dev` di localhost | Data contoh tersedia sebagai cadangan; mode `local` tetap bisa dipakai tanpa Supabase |
 
 ## 8. Batasan dan Pengembangan Lanjutan
@@ -177,9 +184,9 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 Supabase Auth sudah dipakai untuk login guru/siswa. **Fase 1.5 (guru)** sudah
 tersedia sebagian: verifikasi tersinkron, materi guru + AI, berbagi ke siswa,
 dan hasil kuis. **Belum tersedia:** antarmuka daftar siswa binaan dan pemindaian
-atas nama siswa. Penguatan lain yang masih dikerjakan: registrasi siswa,
-Supabase Storage, verifikasi JWT di FastAPI, RPC verifikasi guru, file SQL skema
-lengkap di repository, dashboard admin, dan cache lintas proses.
+atas nama siswa. Registrasi siswa, file SQL skema lengkap, dan verifikasi JWT di
+FastAPI sudah tersedia. Penguatan yang masih dikerjakan: Supabase Storage, RPC
+verifikasi guru, dashboard admin, dan cache lintas proses.
 Sinkronisasi materi/verifikasi/kuis tersedia lewat
 `NEXT_PUBLIC_DATA_MODE=supabase`, tetapi default proyek tetap `local` agar demo
 stabil. Lihat [Backend README](../Backend/README.md) dan

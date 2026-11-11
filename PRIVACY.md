@@ -14,14 +14,15 @@ Pengguna utama aplikasi ini adalah **anak-anak penyandang disabilitas**. Karena 
 | Bintang | `localStorage` atau database Supabase (bagian dari materi) | Elemen menyenangkan | Tidak dipakai untuk iklan |
 | Nama guru, catatan guru, status verifikasi | `localStorage` (default) atau database Supabase | Fitur Mode Guru | Terlihat oleh guru dan siswa yang terhubung |
 | Skor kuis (terakhir, terbaik, total soal, jumlah percobaan) dan status selesai | `localStorage` (default) atau database Supabase | Latihan mandiri (bukan penilaian resmi) | Terlihat oleh siswa dan guru binaannya |
-| Akun login | Supabase Auth (email, kata sandi terenkripsi, peran) | Login guru/siswa | Registrasi siswa direncanakan; akun guru dibuat pengelola |
+| Akun login | Supabase Auth (email, kata sandi terenkripsi, peran) | Login guru/siswa | Siswa dapat mendaftar dengan email; akun guru dibuat pengelola |
 | Materi buatan guru (judul, teks, poin) dan salinannya untuk siswa | Database Supabase saat `NEXT_PUBLIC_DATA_MODE=supabase` | Guru membuat materi, lalu membagikannya ke siswa binaan | Salinan materi dimiliki tiap siswa; guru binaan dapat melihatnya |
-| Pengaturan tampilan | Memori sesi browser | Menyesuaikan tampilan | Belum disimpan permanen |
+| Pengaturan tampilan | Profil Supabase (`accessibility_settings`) setelah login; memori sesi untuk tamu | Menyesuaikan tampilan dan kebutuhan aksesibilitas | Dapat diubah kapan saja dari menu Pengaturan |
 | Log teknis server | Server hosting | Diagnosis kegagalan | Hanya nama jenis error, tanpa isi gambar atau teks |
 
-Aplikasi **tidak** memakai pelacak iklan dan **tidak** menjual data. Saat ini
-akun dibuat oleh pengelola. Registrasi siswa (dengan persetujuan orang tua/guru)
-masih direncanakan dan belum aktif.
+Aplikasi **tidak** memakai pelacak iklan dan **tidak** menjual data. Siswa dapat
+mendaftar dengan email dan kata sandi; akun guru dibuat oleh pengelola.
+Persetujuan orang tua/guru untuk pengguna di bawah umur masih dilakukan secara
+manual oleh pendamping, belum berupa alur digital.
 
 ## 2. Yang Diminta dari Pengguna
 
@@ -96,6 +97,8 @@ Perubahan akan dicatat pada dokumen ini beserta tanggalnya.
 | 9 November 2026 | Menambahkan data Mode Guru (nama, catatan, verifikasi) dan skor kuis yang tersimpan lokal |
 | 9 November 2026 | Menambahkan sinkronisasi Supabase dan materi buatan guru yang dibagikan ke siswa |
 | 9 November 2026 | Menyesuaikan status: registrasi siswa, Supabase Storage, dan verifikasi JWT masih direncanakan; menambahkan hak hapus akun/data Supabase |
+| 11 November 2026 | Registrasi siswa aktif dan pengaturan aksesibilitas disimpan ke profil Supabase |
+| 11 November 2026 | Token login diverifikasi di backend; klien tidak dapat mengubah peran akun sendiri |
 
 ## 11. Kontak
 
