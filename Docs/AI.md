@@ -6,8 +6,9 @@ Dokumen ini menjelaskan peran AI, prompt, skema keluaran, validasi sumber, dan b
 > teks materi guru (`POST /api/simplify`), dan endpoint flashcard visual sudah
 > tersedia di backend FastAPI. UI Mode Visual memakai flashcard dari hasil scan
 > atau materi contoh; tombol pembuatan flashcard AI dari kata bebas belum
-> ditambahkan ke antarmuka. Verifikasi JWT Supabase di backend **belum
-> diterapkan**; endpoint AI saat ini dilindungi rate limit per IP.
+> ditambahkan ke antarmuka. Verifikasi JWT Supabase di backend **sudah
+> diterapkan** (`AUTH_MODE=optional`/`required`) dan endpoint AI dilindungi
+> rate limit per akun / per IP.
 
 ## 1. Peran AI
 
@@ -195,13 +196,13 @@ agar hasil `/api/scan` dan `/api/explain` konsisten.
 
 ## 9. Catatan Privasi Terkait AI
 
-Gambar halaman buku dikirim ke layanan Gemini untuk diproses dan tidak disimpan permanen oleh aplikasi. Riwayat teks hasil scan disimpan di `localStorage` perangkat pengguna atau di Supabase bila `NEXT_PUBLIC_DATA_MODE=supabase`. Rencana Supabase Storage (bucket privat + signed URL) belum diterapkan. Pengguna diminta hanya memotret halaman buku, tanpa identitas pribadi.
+Gambar halaman buku dikirim ke layanan Gemini untuk diproses dan tidak disimpan permanen oleh aplikasi (zero image retention). Riwayat teks hasil scan disimpan di `localStorage` perangkat pengguna atau di Supabase bila `NEXT_PUBLIC_DATA_MODE=supabase`. Rencana Supabase Storage (bucket privat + signed URL) belum diterapkan. Pengguna diminta hanya memotret halaman buku, tanpa identitas pribadi.
 
-Verifikasi JWT Supabase di backend belum diterapkan. Setelah aktif, setiap
-permintaan AI harus menyertakan token pengguna dan backend akan memeriksa
-`aud`, `exp`, dan tanda tangan JWKS sebelum memanggil Gemini. Ketentuan
-penggunaan data pada layanan Gemini perlu diperiksa dan dicantumkan di
-[PRIVACY.md](../PRIVACY.md).
+Verifikasi JWT Supabase di backend sudah diterapkan (`app/security.py`). Backend
+memverifikasi tanda tangan JWKS (ES256/RS256), `aud`, dan `exp`. Pada mode
+`AUTH_MODE=optional`, token yang sah dipakai untuk rate limit per akun sementara
+tamu tetap bisa mencoba demo; token palsu atau kedaluwarsa langsung ditolak 401.
+Ketentuan penggunaan data pada layanan Gemini dicantumkan di [PRIVACY.md](../PRIVACY.md).
 
 ## 10. Catatan Pengujian Prompt
 

@@ -29,11 +29,13 @@ Tanpa `GEMINI_API_KEY`, endpoint `/api/scan` mengembalikan pesan ramah (503)
 dan aplikasi tetap bisa memakai tombol **Contoh Halaman** di frontend.
 Endpoint `/api/explain` memakai jawaban contoh aman.
 
-Variabel yang direncanakan untuk verifikasi JWT (belum dipakai kode saat ini):
+Variabel konfigurasi verifikasi JWT Supabase:
 
 ```
+AUTH_MODE=optional
 SUPABASE_URL=https://<project>.supabase.co
-SUPABASE_JWT_AUD=authenticated
+SUPABASE_JWT_AUDIENCE=authenticated
+# SUPABASE_JWT_SECRET=   ← hanya jika project Supabase lama memakai token HS256
 ```
 
 `GEMINI_API_KEY` tidak pernah dikirim ke browser. Jangan menaruh `service_role`
@@ -51,9 +53,10 @@ key di frontend.
 | GET | `/api/demo` | Daftar materi contoh |
 | GET | `/api/demo/{id}` | Satu materi contoh |
 
-> **Status keamanan:** endpoint AI saat ini dilindungi rate limit per IP.
-> Verifikasi JWT Supabase (header `Authorization: Bearer <access token>`) masih
-> **direncanakan** dan belum diterapkan.
+> **Status keamanan:** verifikasi token Supabase (JWT) pada seluruh endpoint AI
+> sudah aktif via `app/security.py`. Mode diatur lewat `AUTH_MODE=optional` (tamu
+> demo tetap bisa mencoba, token palsu/kedaluwarsa ditolak) atau `required`
+> untuk produksi ketat. Rate limit dihitung per akun (atau per IP untuk tamu).
 
 ## Struktur
 
@@ -74,9 +77,8 @@ Backend/
 ## Catatan keamanan & efisiensi
 
 - Ukuran gambar maksimal 10 MB; hanya JPG/PNG/WEBP; tipe dideteksi dari isi file.
-- Rate limit per IP (default 12 permintaan/menit); rencana: per pengguna setelah JWT.
-- Rencana verifikasi JWT Supabase: `SUPABASE_URL` + JWKS, cek `aud` dan `exp`.
-  Tambahkan `Authorization` ke `allow_headers` CORS saat diaktifkan.
+- Rate limit dihitung per akun jika login, dan per IP untuk tamu (default 12 permintaan/menit).
+- Verifikasi JWT Supabase: JWKS (ES256/RS256) otomatis dari `SUPABASE_URL`, memeriksa `aud` (`authenticated`) dan `exp`. Header `Authorization` diizinkan di CORS.
 - Hasil scan dicache berdasarkan SHA-256 gambar (default 1 jam, 50 entri); teks
   `/api/simplify` memakai cache teks di memori yang sama.
 - Log tidak memuat isi gambar atau teks halaman.

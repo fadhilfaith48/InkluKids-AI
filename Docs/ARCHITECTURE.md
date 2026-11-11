@@ -25,9 +25,10 @@ Status integrasi per 11 November 2026:
 
 - Sudah tersedia: login Supabase, registrasi siswa, profil/role dari tabel
   `profiles`, sinkronisasi materi, verifikasi guru, materi guru + AI, berbagi ke
-  siswa, hasil kuis, serta verifikasi JWT Supabase di backend (`AUTH_MODE=optional`).
+  siswa, hasil kuis, verifikasi JWT Supabase di backend (`AUTH_MODE=optional`), serta
+  skema RPC verifikasi guru (`verify_scan`) di SQL.
 - Belum tersedia: antarmuka daftar siswa binaan, pemindaian atas nama siswa,
-  Supabase Storage untuk gambar, dan RPC verifikasi guru.
+  dan Supabase Storage untuk gambar permanen (saat ini gambar diproses OCR tanpa disimpan permanen).
 
 ```mermaid
 flowchart LR
@@ -85,7 +86,7 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 | Mode Belajar | `Frontend/app/page.tsx` | Satu hasil scan disajikan dalam Mode Baca, Visual, atau Suara tanpa memanggil AI |
 | Text-to-Speech | Web Speech API | `speechSynthesis` Bahasa Indonesia |
 | Pencarian suara | `Frontend/app/components/HistoryView.tsx` | `SpeechRecognition` id-ID (Chrome/Edge) + input ketik |
-| Mode Guru / verifikasi | `Frontend/app/components/TeacherModeView.tsx` | Guru/pendamping membandingkan poin AI dengan teks OCR, menyunting poin, lalu menandai materi terverifikasi. Target: perubahan poin lewat RPC verifikasi |
+| Mode Guru / verifikasi | `Frontend/app/components/TeacherModeView.tsx` | Guru/pendamping membandingkan poin AI dengan teks OCR, menyunting poin, lalu menandai materi terverifikasi. Didukung RPC `verify_scan` (dengan fallback direct update) |
 | Kuis Ceria | `Frontend/app/components/QuizModal.tsx` | Soal pilihan ganda disusun lokal dari `points` (tanpa memanggil AI) |
 | Materi Kelas (guru) | `Frontend/app/components/CreateMaterialModal.tsx` | Guru menulis teks, AI menyederhanakan, guru menyunting poin, lalu membagikan ke semua siswa binaan (salinan per siswa) |
 

@@ -46,11 +46,12 @@ Supabase: isi `Frontend/.env.local` dari `.env.example`
 memakai mode `supabase`. Jangan pernah memakai `service_role` di frontend.
 
 Status fitur yang belum selesai (per 11 November 2026): antarmuka daftar siswa
-binaan, pemindaian atas nama siswa, Supabase Storage, dan RPC verifikasi guru.
-Registrasi siswa, `Docs/SQL-schema.sql`, `Docs/SQL-security-hardening.sql`, dan
-verifikasi JWT di FastAPI (`AUTH_MODE=optional`) sudah tersedia. Jangan menulis
-di dokumentasi bahwa fitur yang belum selesai sudah tersedia sampai kodenya
-benar-benar ada.
+binaan, pemindaian atas nama siswa, dan Supabase Storage untuk gambar permanen
+(saat ini foto buku diproses OCR tanpa retensi permanen).
+Registrasi siswa, skema RPC verifikasi guru di `Docs/SQL-schema.sql`,
+`Docs/SQL-security-hardening.sql`, dan verifikasi JWT di FastAPI (`AUTH_MODE=optional`)
+sudah tersedia. Jangan menulis di dokumentasi bahwa fitur yang belum selesai
+sudah tersedia sampai kodenya benar-benar ada.
 
 ## Aturan Wajib
 

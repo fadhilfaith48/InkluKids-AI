@@ -68,7 +68,7 @@ Setiap penjelasan AI punya tombol **Lihat Sumber** yang menampilkan kutipan teks
 | Penyimpanan gambar di Supabase Storage | **Direncanakan** (gambar saat ini hanya diproses untuk OCR) |
 | Verifikasi JWT Supabase di backend | Tersedia (`AUTH_MODE=optional`; token palsu ditolak, tamu tetap boleh demo) |
 | Rate limit endpoint AI | Tersedia (per akun bila login, per IP untuk tamu) |
-| RPC verifikasi guru (tanpa `UPDATE scans` bebas) | **Direncanakan** |
+| RPC verifikasi guru (tanpa `UPDATE scans` bebas) | Tersedia (`Docs/SQL-schema.sql` & didukung `lib/materials.ts`) |
 | File SQL skema + RLS lengkap di repository | Tersedia (`Docs/SQL-schema.sql`) |
 | Pengerasan anti-eskalasi peran | Tersedia (`Docs/SQL-security-hardening.sql`) |
 
@@ -327,18 +327,18 @@ Bila kuota AI bermasalah, gunakan **Contoh Halaman** pada modal pindai atau
 - Backend AI memverifikasi token Supabase (`AUTH_MODE=optional`): token tidak valid ditolak 401, tamu tanpa token tetap boleh memakai demo. Set `AUTH_MODE=required` bila semua pemakaian wajib login.
 - Rate limit endpoint AI dihitung per akun setelah login, dan per IP untuk tamu. Route handler Next.js (cadangan) punya rate limit tambahan per IP.
 - File `Docs/SQL-security-hardening.sql` menutup celah siswa menaikkan peran sendiri (`role`), memakai trigger + izin kolom terbatas. Jalankan sekali di Supabase.
-- Perubahan poin oleh guru masih membutuhkan policy `scans_update_teacher`. Targetnya, perubahan hanya lewat RPC verifikasi agar guru tidak punya akses `UPDATE scans` bebas.
-- `Docs/SQL-schema.sql` berisi 5 tabel, trigger profil, RLS, dan index. Policy Storage belum ada karena bucket gambar belum dipakai.
+- Perubahan poin oleh guru kini didukung fungsi database RPC `verify_scan` (dengan fallback policy `scans_update_teacher` jika RPC belum di-apply di Supabase).
+- `Docs/SQL-schema.sql` berisi 5 tabel, trigger profil, RLS, index, dan fungsi RPC `verify_scan`. Policy Storage belum ada karena bucket gambar belum dipakai (zero image retention).
 - `Docs/SQL-security-hardening.sql` menutup celah eskalasi peran: klien hanya boleh mengubah `name`, `grade`, dan `accessibility_settings` pada profilnya sendiri.
 - Kuota Gemini tier gratis terbatas (sekitar 20 permintaan/hari per proyek).
 
 ### Rencana sebelum submission (11–14 November 2026)
 
 1. ~~Registrasi siswa di `lib/auth.tsx` + `LoginModal.tsx`, role selalu `siswa`.~~ **Selesai.**
-2. ~~`Docs/SQL-schema.sql` berisi 5 tabel, trigger profil, RLS, dan index.~~ **Selesai** (policy Storage menyusul).
-3. Supabase Storage: bucket privat `scans`, `lib/storage.ts`, signed URL.
+2. ~~`Docs/SQL-schema.sql` berisi 5 tabel, trigger profil, RLS, index, dan RPC verifikasi guru.~~ **Selesai.**
+3. Supabase Storage: bucket privat `scans`, `lib/storage.ts`, signed URL (opsional, jika ingin menyimpan gambar asli).
 4. ~~Verifikasi JWT Supabase di FastAPI (JWKS + `aud` + `exp`) dan header `Authorization` dari frontend.~~ **Selesai** (`AUTH_MODE=optional`).
-5. RPC verifikasi guru agar perubahan poin tidak memakai `UPDATE scans` bebas.
+5. ~~RPC verifikasi guru agar perubahan poin tidak memakai `UPDATE scans` bebas.~~ **Selesai** (fungsi `verify_scan` di SQL dan dipanggil `materials.ts`).
 6. Uji RLS lintas akun, uji JWT, `npm run build`, `pytest`, dan deploy ulang.
 
 ## 9. Privasi, Etika, dan Efisiensi

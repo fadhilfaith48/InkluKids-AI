@@ -258,12 +258,12 @@ Aturannya: bila satu fitur di kolom pertama tidak jalan, produk tidak bisa dicob
 
 ### Modul Guru/Pendamping (Fase 1.5)
 
-> **Status implementasi:** login Supabase, verifikasi materi, penyuntingan poin,
-> nama guru, catatan pendamping, serta sinkronisasi ke siswa sudah tersedia.
+> **Status implementasi:** login Supabase, registrasi akun siswa, verifikasi materi, penyuntingan poin,
+> nama guru, catatan pendamping, sinkronisasi ke siswa, verifikasi JWT di FastAPI, dan RPC
+> `verify_scan` di skema SQL sudah tersedia.
 > Skema `guardianships`, `teacher_verifications`, dan `quiz_results` sudah dipakai.
-> **Belum tersedia:** halaman daftar siswa binaan, pemindaian atas nama siswa,
-> penyimpanan gambar di Supabase Storage, verifikasi JWT di FastAPI, dan RPC
-> verifikasi agar guru tidak menulis langsung ke `scans`.
+> **Belum tersedia:** antarmuka daftar siswa binaan, pemindaian atas nama siswa,
+> dan penyimpanan gambar di Supabase Storage (gambar buku saat ini diproses OCR tanpa retensi permanen).
 
 #### Dashboard Guru & Verifikasi Konten
 
@@ -452,4 +452,4 @@ Gemini API (Vision) dipilih karena satu model dapat membaca gambar halaman buku,
 | Hari 8 | 14 Nov | Submission akhir (jangan menunggu menit terakhir): source code ke GitHub, video demo 3–5 menit yang diunggah ke YouTube (Unlisted atau Public) dan direkam dari commit final, dengan caption di layar (narasi opsional), hasil scan cadangan; kode tidak boleh diubah setelah batas waktu; submission hanya sekali lewat portal resmi sebelum 14 Nov pukul 23.59 WIB, termasuk Surat Pernyataan Orisinalitas (PDF, meterai Rp10.000, ditandatangani ketua tim) |
 | Pitching Finalis | 29 Nov | Final 15 menit (7 menit presentasi dan live demo di localhost, 3 menit tanya jawab) bila lolos Top 8; pengumuman finalis 21 Nov dan technical meeting 22 Nov |
 
-**Status implementasi per 9 November 2026:** alur siswa (scan, tiga Mode Belajar, Lihat Sumber, riwayat, pengaturan), backend FastAPI, login Supabase, sinkronisasi materi, verifikasi guru tersinkron, materi guru + AI, berbagi ke siswa, dan Kuis Ceria sudah tersedia. Yang masih dikerjakan sebelum submission: antarmuka daftar siswa binaan, pemindaian atas nama siswa, registrasi siswa, Supabase Storage, verifikasi JWT di FastAPI, RPC verifikasi guru, dan SQL skema lengkap di repository.
+**Status implementasi per 11 November 2026:** alur siswa (scan, tiga Mode Belajar, Lihat Sumber, riwayat, pengaturan aksesibilitas tersimpan ke profil), backend FastAPI, login & registrasi siswa Supabase Auth, sinkronisasi materi, verifikasi JWT di FastAPI (`AUTH_MODE=optional`), RPC verifikasi guru di skema SQL, verifikasi guru tersinkron, materi guru + AI, berbagi ke siswa, dan Kuis Ceria sudah tersedia. Yang masih direncanakan untuk fase lanjutan: antarmuka daftar siswa binaan, pemindaian atas nama siswa, dan Supabase Storage untuk gambar permanen (saat ini gambar menerapkan zero-retention/hanya diproses OCR).

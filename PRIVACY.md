@@ -47,8 +47,8 @@ Text-to-Speech memakai Web Speech API browser. Pada sebagian browser, suara dapa
 - API key Gemini hanya berada di sisi server dan tidak dikirim ke browser.
 - Frontend hanya memakai anon/publishable key Supabase; service role key tidak pernah dipakai di browser.
 - Akses data diatur Row Level Security: siswa hanya melihat datanya sendiri, guru hanya melihat siswa binaannya.
-- Guru tidak boleh mengubah poin siswa secara langsung; perubahan hanya melalui alur verifikasi.
-- Verifikasi JWT Supabase di backend dan penyimpanan gambar di bucket privat **masih direncanakan**; sampai selesai, endpoint AI dilindungi rate limit per IP dan gambar tidak disimpan permanen.
+- Guru tidak boleh mengubah poin siswa secara langsung; perubahan materi difasilitasi melalui alur verifikasi (RPC `verify_scan`).
+- Verifikasi token Supabase (JWT) di backend sudah aktif via JWKS (`AUTH_MODE=optional`/`required`), dan endpoint AI dilindungi rate limit per akun (atau per IP untuk tamu). Gambar halaman buku tidak disimpan permanen (zero image retention; rencana Supabase Storage masih direncanakan).
 - Tanpa login, riwayat dan data belajar tetap berada di perangkat pengguna dan dapat dihapus kapan saja.
 - Input divalidasi di server (tipe, ukuran gambar, panjang teks).
 
