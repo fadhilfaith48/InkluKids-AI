@@ -28,9 +28,11 @@ export function saveToHistory(item: ScanResult): ScanResult[] {
   if (typeof window === 'undefined') return [];
   try {
     const current = getHistory();
+    // Hilangkan image_preview agar tidak membebani kuota localStorage browser (privasi anak & zero image storage)
+    const sanitizedItem: ScanResult = { ...item, image_preview: undefined };
     // Jika item dengan ID yang sama sudah ada, gantikan
     const filtered = current.filter((x) => x.id !== item.id);
-    const updated = [item, ...filtered].slice(0, MAX_HISTORY);
+    const updated = [sanitizedItem, ...filtered].slice(0, MAX_HISTORY);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     return updated;
   } catch (err) {

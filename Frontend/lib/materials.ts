@@ -138,7 +138,8 @@ function scanToRow(item: ScanResult, ownerId: string, id: string) {
     glossary: item.glossary ?? [],
     flashcards: item.flashcards ?? [],
     readable: item.readable,
-    image_preview: item.image_preview ?? null,
+    // Zero image retention: foto buku anak hanya diproses OCR dan tidak disimpan permanen
+    image_preview: null,
     stars_earned: item.stars_earned ?? 0,
     lesson_completed: item.lesson_completed === true,
   };

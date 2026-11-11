@@ -76,8 +76,8 @@ export function ScanModal({ isOpen, onClose, onScanSuccess }: ScanModalProps) {
       const { base64, mimeType } = await compressImage(file);
       setLoadingMessage('Milo & Gemini sedang membaca dan menyederhanakan halaman...');
 
-      const previewUrl = `data:${mimeType};base64,${base64}`;
-      const result = await scanBookImage(base64, mimeType, previewUrl);
+      // Foto diproses untuk OCR tanpa menyimpan base64 gambar permanen (zero image storage)
+      const result = await scanBookImage(base64, mimeType);
 
       handleClose();
       onScanSuccess(result);
