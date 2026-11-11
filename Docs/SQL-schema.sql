@@ -171,6 +171,70 @@ create trigger profiles_prevent_role_change
   before update on public.profiles
   for each row execute function public.prevent_profile_role_change();
 
+-- RPC Verifikasi Guru (Fase 1.5):
+-- Memungkinkan guru memverifikasi materi siswa binaan dan menyinkronkan
+-- suntingan judul/poin tanpa memerlukan izin UPDATE scans bebas.
+create or replace function public.verify_scan(
+  p_scan_id uuid,
+  p_is_verified boolean,
+  p_edited boolean,
+  p_notes text,
+  p_title text default null,
+  p_points jsonb default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_owner_id uuid;
+begin
+  select owner_id into v_owner_id
+  from public.scans
+  where id = p_scan_id;
+
+  if v_owner_id is null then
+    raise exception 'Materi tidak ditemukan.';
+  end if;
+
+  if not (v_owner_id = auth.uid() or public.is_teacher_of(v_owner_id)) then
+    raise exception 'Hanya guru pendamping yang terdaftar yang dapat memverifikasi materi ini.';
+  end if;
+
+  insert into public.teacher_verifications (
+    scan_id,
+    teacher_id,
+    is_verified,
+    edited,
+    notes,
+    verified_at
+  )
+  values (
+    p_scan_id,
+    auth.uid(),
+    p_is_verified,
+    p_edited,
+    coalesce(p_notes, ''),
+    now()
+  )
+  on conflict (scan_id) do update set
+    teacher_id = auth.uid(),
+    is_verified = excluded.is_verified,
+    edited = excluded.edited,
+    notes = excluded.notes,
+    verified_at = now();
+
+  if p_edited and (p_title is not null or p_points is not null) then
+    update public.scans
+    set
+      title = coalesce(p_title, title),
+      points = coalesce(p_points, points)
+    where id = p_scan_id;
+  end if;
+end;
+$$;
+
 -- ------------------------------------------------------------
 -- 4. Row Level Security
 -- ------------------------------------------------------------
@@ -368,6 +432,7 @@ grant select, insert, update, delete on public.guardianships to authenticated;
 grant select, insert, update, delete on public.scans to authenticated;
 grant select, insert, update, delete on public.teacher_verifications to authenticated;
 grant select, insert, update, delete on public.quiz_results to authenticated;
+grant execute on function public.verify_scan to authenticated;
 
 -- ------------------------------------------------------------
 -- Catatan

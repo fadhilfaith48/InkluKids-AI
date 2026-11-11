@@ -258,40 +258,59 @@ export async function saveVerification(item: ScanResult): Promise<SaveMaterialRe
     const teacherId = await currentUserId();
     if (!teacherId) throw new Error('Belum ada sesi login.');
 
-    const { data: updatedScans, error: scanError } = await supabase
-      .from('scans')
-      .update({
-        title: item.title,
-        points: item.points ?? [],
-      })
-      .eq('id', item.id)
-      .select('id');
-
-    if (scanError) throw scanError;
-
-    if (!updatedScans || updatedScans.length === 0) {
-      // Policy untuk guru menyunting materi siswa belum ada. Verifikasi tetap
-      // disimpan, tetapi judul/poin hasil suntingan belum tersinkron.
-      console.warn(
-        'Judul/poin materi tidak tersimpan ke Supabase. Jalankan policy "scans_update_teacher" agar guru bisa menyinkronkan suntingan.'
-      );
+    // Coba simpan lewat RPC 'verify_scan' (alur transaksi aman tanpa izin UPDATE scans bebas)
+    let rpcSuccess = false;
+    try {
+      const { error: rpcErr } = await supabase.rpc('verify_scan', {
+        p_scan_id: item.id,
+        p_is_verified: verification?.isVerified === true,
+        p_edited: verification?.edited === true,
+        p_notes: verification?.notes || '',
+        p_title: item.title,
+        p_points: item.points ?? [],
+      });
+      if (!rpcErr) {
+        rpcSuccess = true;
+      }
+    } catch {
+      rpcSuccess = false;
     }
 
-    const { error: verificationError } = await supabase
-      .from('teacher_verifications')
-      .upsert(
-        {
-          scan_id: item.id,
-          teacher_id: teacherId,
-          is_verified: verification?.isVerified === true,
-          edited: verification?.edited === true,
-          notes: verification?.notes || '',
-          verified_at: nowIso(),
-        },
-        { onConflict: 'scan_id' }
-      );
+    if (!rpcSuccess) {
+      // Fallback untuk instance yang belum mengaktifkan RPC verify_scan
+      const { data: updatedScans, error: scanError } = await supabase
+        .from('scans')
+        .update({
+          title: item.title,
+          points: item.points ?? [],
+        })
+        .eq('id', item.id)
+        .select('id');
 
-    if (verificationError) throw verificationError;
+      if (scanError) throw scanError;
+
+      if (!updatedScans || updatedScans.length === 0) {
+        console.warn(
+          'Judul/poin materi tidak tersimpan ke Supabase. Jalankan RPC verify_scan atau policy "scans_update_teacher".'
+        );
+      }
+
+      const { error: verificationError } = await supabase
+        .from('teacher_verifications')
+        .upsert(
+          {
+            scan_id: item.id,
+            teacher_id: teacherId,
+            is_verified: verification?.isVerified === true,
+            edited: verification?.edited === true,
+            notes: verification?.notes || '',
+            verified_at: nowIso(),
+          },
+          { onConflict: 'scan_id' }
+        );
+
+      if (verificationError) throw verificationError;
+    }
 
     const items = await listMaterials();
     const saved = items.find((lesson) => lesson.id === item.id) ?? item;
