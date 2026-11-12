@@ -99,5 +99,6 @@ class HealthResponse(BaseModel):
     status: str
     service: str
     model: str
+    text_model: str = ""
     gemini_configured: bool
     demo_fallback: bool

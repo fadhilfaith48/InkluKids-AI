@@ -15,6 +15,7 @@ def health() -> HealthResponse:
         status="ok",
         service=settings.app_name,
         model=settings.gemini_model,
+        text_model=settings.text_model,
         gemini_configured=settings.gemini_enabled,
         demo_fallback=settings.enable_demo_fallback,
     )

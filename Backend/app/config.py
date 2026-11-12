@@ -25,7 +25,15 @@ class Settings(BaseSettings):
 
     # AI
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    # Model vision untuk pemindaian gambar halaman buku.
+    gemini_model: str = "gemini-3.5-flash-lite"
+    # Model teks untuk tutor, flashcard, dan penyederhanaan teks guru.
+    text_model: str = "gemini-3.1-flash-lite"
+    # Cadangan otomatis bila model utama tidak tersedia (dipisah koma).
+    model_fallbacks: str = "gemini-3.1-flash-lite,gemini-3.6-flash"
+    # 0 = matikan "thinking" (hemat token output, JSON tidak mudah terpotong).
+    # Isi -1 untuk memakai pengaturan bawaan model.
+    ai_thinking_budget: int = 0
     request_timeout_seconds: int = 45
 
     # Log ringkasan balasan AI (tanpa isi gambar/teks halaman) untuk diagnosis.
@@ -70,6 +78,10 @@ class Settings(BaseSettings):
     @property
     def allowed_origins_list(self) -> list[str]:
         return [item.strip() for item in self.allowed_origins.split(",") if item.strip()]
+
+    @property
+    def fallback_models_list(self) -> list[str]:
+        return [item.strip() for item in self.model_fallbacks.split(",") if item.strip()]
 
     @property
     def auth_mode_normalized(self) -> str:
