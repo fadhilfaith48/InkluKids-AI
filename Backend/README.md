@@ -66,7 +66,8 @@ Backend/
 │   ├── main.py          # FastAPI, CORS, security header, exception handler
 │   ├── config.py        # environment variable
 │   ├── schemas.py       # Pydantic (bentuk sama dengan types/index.ts)
-│   ├── deps.py          # rate limit, cache, helper hash; rencana verifikasi JWT
+│   ├── deps.py          # rate limit (per akun/IP), cache, helper hash
+│   ├── security.py      # verifikasi JWT Supabase (JWKS/HS256) & dependency require_user
 │   ├── routers/         # health, scan, explain, flashcards, simplify, demo
 │   └── services/        # gemini, validator, cache, rate limit, transform
 ├── tests/

@@ -53,7 +53,7 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 
 1. Pengguna login (Supabase Auth) atau memakai mode tamu lokal.
 2. Pengguna memotret atau mengunggah halaman buku.
-3. Browser mengompres gambar (maksimal sisi 1200 px, JPEG kualitas 0,82).
+3. Browser mengompres gambar (maksimal sisi 2000 px, JPEG kualitas bertahap 0,9–0,6, ukuran di bawah ~9 MB).
 4. Browser memanggil `POST /api/scan` di backend dengan `imageBase64`, `mimeType`,
    dan header `Authorization: Bearer <access token>` bila pengguna login.
 5. Backend memvalidasi tipe gambar (JPG/PNG/WEBP, dideteksi dari isi file),
@@ -103,11 +103,12 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 | `Frontend/lib/api-client.ts` | Pemanggil backend + fallback ke Route Handler |
 | `Frontend/app/api/scan/route.ts` | Cadangan: validasi input, panggil Gemini, validasi kutipan |
 | `Frontend/app/api/explain/route.ts` | Cadangan: panggil Gemini untuk penjelasan alternatif |
+| `Frontend/app/api/simplify/route.ts` | Cadangan: penyederhanaan teks materi guru |
 | `Frontend/lib/gemini.ts` | Klien Gemini dan prompt untuk route handler cadangan |
 | `Frontend/lib/source-validator.ts` | Normalisasi teks dan validasi kutipan |
 | `Frontend/lib/materials.ts` | Lapisan data materi: Supabase + fallback `localStorage`, verifikasi guru, hasil kuis |
-| `Frontend/lib/auth.tsx` | Provider sesi Supabase, profil, role, login/logout |
-| `Frontend/app/components/LoginModal.tsx` | Form masuk email/password; rencana mode daftar siswa |
+| `Frontend/lib/auth.tsx` | Provider sesi Supabase, profil, role, login/logout, registrasi siswa |
+| `Frontend/app/components/LoginModal.tsx` | Form masuk dan daftar akun siswa (email/password) |
 | `Frontend/lib/supabase.ts` | Klien Supabase (anon key), validasi env, lazy init |
 | `Frontend/lib/storage.ts` (rencana) | Unggah/hapus gambar ke bucket privat dan membuat signed URL |
 | `Frontend/lib/history.ts` | Implementasi `localStorage` yang dipakai mode lokal |
@@ -183,11 +184,11 @@ opsional lewat `NEXT_PUBLIC_DATA_MODE`; selama `local`, data tetap di perangkat.
 ## 8. Batasan dan Pengembangan Lanjutan
 
 Supabase Auth sudah dipakai untuk login guru/siswa. **Fase 1.5 (guru)** sudah
-tersedia sebagian: verifikasi tersinkron, materi guru + AI, berbagi ke siswa,
+tersedia sebagian: verifikasi tersinkron (didukung RPC `verify_scan`), materi guru + AI, berbagi ke siswa,
 dan hasil kuis. **Belum tersedia:** antarmuka daftar siswa binaan dan pemindaian
 atas nama siswa. Registrasi siswa, file SQL skema lengkap, dan verifikasi JWT di
-FastAPI sudah tersedia. Penguatan yang masih dikerjakan: Supabase Storage, RPC
-verifikasi guru, dashboard admin, dan cache lintas proses.
+FastAPI sudah tersedia. Penguatan yang masih direncanakan: Supabase Storage,
+dashboard admin, dan cache lintas proses.
 Sinkronisasi materi/verifikasi/kuis tersedia lewat
 `NEXT_PUBLIC_DATA_MODE=supabase`, tetapi default proyek tetap `local` agar demo
 stabil. Lihat [Backend README](../Backend/README.md) dan

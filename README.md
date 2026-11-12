@@ -51,7 +51,7 @@ Setiap penjelasan AI punya tombol **Lihat Sumber** yang menampilkan kutipan teks
 | Lihat Sumber + validasi kutipan | Tersedia |
 | Tanya Penjelasan Lain (AI tutor) | Tersedia |
 | Kartu Respons Simbol + pengingat istirahat | Tersedia |
-| Mode Tenang, kontras tinggi, huruf lebar, teks 100–200% | Tersedia |
+| Mode Tenang, kontras tinggi, huruf lebar, teks 100–130% (serta zoom browser hingga 200%) | Tersedia |
 | Bintang dan elemen menyenangkan | Tersedia |
 | Mode Guru / verifikasi materi | Tersedia (login Supabase; judul, poin, dan catatan tersinkron) |
 | Kuis Ceria dari poin materi | Tersedia (soal disusun lokal; total soal dan skor terbaik disimpan, bukan penilaian resmi) |
@@ -128,7 +128,7 @@ sedang tidak berjalan, Route Handler Next.js (`/api/scan`, `/api/explain`,
    Isi `Backend/.env` bila sudah punya kunci:
    ```
    GEMINI_API_KEY=<kunci asli>
-   GEMINI_MODEL=gemini-3.6-flash
+   GEMINI_MODEL=gemini-2.5-flash
 
    # Verifikasi token Supabase (JWT) untuk endpoint AI.
    # optional = token diverifikasi bila ada, tamu tetap boleh (demo aman).
