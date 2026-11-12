@@ -157,6 +157,30 @@ async function currentUserId(): Promise<string | null> {
 export interface SaveMaterialResult {
   items: ScanResult[];
   saved: ScanResult;
+  error?: string;
+}
+
+function isAuthorizationError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const err = error as { code?: string; status?: number; message?: string };
+  if (err.status === 401 || err.status === 403) return true;
+  if (err.code === '42501' || err.code === 'PGRST301') return true;
+  const msg = (err.message || '').toLowerCase();
+  return (
+    msg.includes('row-level security') ||
+    msg.includes('permission denied') ||
+    msg.includes('hanya guru pendamping') ||
+    msg.includes('jwt expired') ||
+    msg.includes('unauthorized')
+  );
+}
+
+function formatAuthErrorMessage(error: unknown, fallback: string): string {
+  if (error && typeof error === 'object' && 'message' in error) {
+    const msg = String((error as { message?: unknown }).message || '').trim();
+    if (msg) return `Akses ditolak: ${msg}`;
+  }
+  return fallback;
 }
 
 /** Ambil seluruh materi (plus verifikasi guru dan hasil kuis). */
@@ -215,6 +239,17 @@ export async function saveMaterial(item: ScanResult): Promise<SaveMaterialResult
     const saved = items.find((lesson) => lesson.id === id) ?? { ...item, id };
     return { items, saved };
   } catch (error) {
+    if (isAuthorizationError(error)) {
+      console.error('Ditolak oleh kebijakan keamanan (RLS):', error);
+      return {
+        items: await listMaterials(),
+        saved: item,
+        error: formatAuthErrorMessage(
+          error,
+          'Anda tidak memiliki izin untuk mengubah materi ini.'
+        ),
+      };
+    }
     warn('Gagal menyimpan materi ke Supabase.', error);
     return { items: saveToHistory(item), saved: item };
   }
@@ -316,6 +351,17 @@ export async function saveVerification(item: ScanResult): Promise<SaveMaterialRe
     const saved = items.find((lesson) => lesson.id === item.id) ?? item;
     return { items, saved };
   } catch (error) {
+    if (isAuthorizationError(error)) {
+      console.error('Verifikasi ditolak oleh kebijakan keamanan (RLS):', error);
+      return {
+        items: await listMaterials(),
+        saved: item,
+        error: formatAuthErrorMessage(
+          error,
+          'Hanya guru pendamping terdaftar yang dapat memverifikasi materi siswa ini.'
+        ),
+      };
+    }
     warn('Gagal menyimpan verifikasi ke Supabase.', error);
     return { items: saveToHistory(item), saved: item };
   }
@@ -469,6 +515,17 @@ export async function saveQuizResult(
     const saved = items.find((lesson) => lesson.id === item.id) ?? item;
     return { items, saved };
   } catch (error) {
+    if (isAuthorizationError(error)) {
+      console.error('Penyimpanan kuis ditolak oleh kebijakan keamanan (RLS):', error);
+      return {
+        items: await listMaterials(),
+        saved: item,
+        error: formatAuthErrorMessage(
+          error,
+          'Hanya siswa pemilik materi yang dapat menyimpan hasil kuis ini.'
+        ),
+      };
+    }
     warn('Gagal menyimpan hasil kuis ke Supabase.', error);
     return { items: saveToHistory(item), saved: item };
   }
