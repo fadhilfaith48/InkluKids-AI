@@ -442,8 +442,8 @@ Gemini API (Vision) dipilih karena satu model dapat membaca gambar halaman buku,
 | Tahap | Waktu | Deliverable |
 | --- | --- | --- |
 | Persiapan | Sebelum 7 Nov (non-kode: desain, dokumen, akun layanan) | PRD, ERD, wireframe/UI mockup, rancangan prompt dan skema JSON, akun Supabase, Vercel, dan Gemini API |
-| Hari 1 | 7 Nov | Mentoring Navasena (09.30–15.30), setup repository dengan folder `Frontend/` (Next.js 15) dan `Backend/` (FastAPI), Supabase, autentikasi dan RLS dasar, verifikasi token Supabase di backend; deploy awal frontend ke Vercel dan backend ke layanan hosting (cukup endpoint health check) agar jalur deployment teruji sejak awal |
-| Hari 2 | 8 Nov | Unggah gambar ke Storage, endpoint backend ke Gemini, struktur JSON terstruktur |
+| Hari 1 | 9 Nov | Mentoring Navasena (09.30–15.30), setup repository dengan folder `Frontend/` (Next.js 15) dan `Backend/` (FastAPI), Supabase, autentikasi dan RLS dasar, verifikasi token Supabase di backend; deploy awal frontend ke Vercel dan backend ke layanan hosting (cukup endpoint health check) agar jalur deployment teruji sejak awal |
+| Hari 2 | 9 Nov | Unggah gambar ke Storage, endpoint backend ke Gemini, struktur JSON terstruktur |
 | Hari 3 | 9 Nov | Checkpoint: Fitur 1 end-to-end (kartu per poin, font/ukuran teks, text-to-speech, pemilih Mode Belajar), dan deploy frontend serta backend ke hosting sehingga dapat diakses lewat browser |
 | Hari 4 | 10 Nov | Tombol "Lihat Sumber" dengan validasi kutipan, riwayat scan, pencarian suara/ketik pada riwayat; tanya 2–3 guru atau pendamping lewat WhatsApp ("Terakhir kali menyederhanakan satu halaman buku untuk siswa, bagian mana yang paling lama?") dan catat jawabannya sebagai bukti masalah |
 | Hari 5 | 11 Nov | Fitur 2: flashcard visual versi ringkas, Mode Suara dasar |
