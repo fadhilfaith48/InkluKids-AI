@@ -42,7 +42,7 @@ Skema JSON:
       "word": "string",
       "meaning": "string, satu kalimat sederhana",
       "steps": [
-        { "order": 1, "icon": "string (pilih dari: sun, waves, cloud, droplet, wind, leaf, sparkles, eye, book, heart)", "text": "string, satu kalimat pendek" }
+        { "order": 1, "icon": "string (pilih dari: sun, waves, cloud, droplet, droplets, wind, leaf, heart, eye, sparkles, arrow-up, cloud-rain, umbrella)", "text": "string, satu kalimat pendek" }
       ],
       "sign_description": "string, deskripsi gerakan isyarat ramah anak",
       "example_sentence": "string, contoh kalimat konkret",
@@ -90,7 +90,7 @@ Skema JSON:
       "word": "string",
       "meaning": "string, satu kalimat sederhana",
       "steps": [
-        { "order": 1, "icon": "string (pilih dari: sun, waves, cloud, droplet, wind, leaf, sparkles, eye, book, heart)", "text": "string, satu kalimat pendek" }
+        { "order": 1, "icon": "string (pilih dari: sun, waves, cloud, droplet, droplets, wind, leaf, heart, eye, sparkles, arrow-up, cloud-rain, umbrella)", "text": "string, satu kalimat pendek" }
       ],
       "sign_description": "string, deskripsi gerakan isyarat ramah anak",
       "example_sentence": "string, contoh kalimat konkret",
