@@ -19,6 +19,7 @@ interface SoundModeViewProps {
   lesson: ScanResult;
   onOpenSourceModal: (pointText: string, quote: string, isValid?: boolean) => void;
   onOpenQuiz?: () => void;
+  onPointChange?: (index: number) => void;
   speakText: (text: string) => void;
   onCompleteLesson: () => void;
   calmMode?: boolean;
@@ -28,6 +29,7 @@ export function SoundModeView({
   lesson,
   onOpenSourceModal,
   onOpenQuiz,
+  onPointChange,
   speakText,
   onCompleteLesson,
   calmMode = false,
@@ -37,6 +39,15 @@ export function SoundModeView({
   const [isCompleted, setIsCompleted] = useState(false);
   const currentPoint: SimplifiedPoint | undefined = points[currentIdx];
   const isLast = currentIdx === points.length - 1;
+
+  useEffect(() => {
+    setCurrentIdx(0);
+    setIsCompleted(false);
+  }, [lesson.id]);
+
+  useEffect(() => {
+    onPointChange?.(currentIdx);
+  }, [currentIdx, onPointChange]);
 
   // Baca otomatis saat berpindah kartu jika mode suara aktif
   useEffect(() => {
@@ -92,8 +103,16 @@ export function SoundModeView({
   if (isCompleted) {
     return (
       <article className="learning-card text-center py-12 px-6" aria-live="polite">
-        <div className="mx-auto grid h-28 w-28 place-items-center rounded-full border-4 border-ink bg-[#FBE6C8] shadow-[4px_4px_0_#17304F]">
-          <Star className="h-16 w-16 fill-[#F2A33A] text-ink" />
+        <div
+          className={`mx-auto grid h-28 w-28 place-items-center rounded-full border-4 border-ink ${
+            calmMode ? 'bg-mint' : 'bg-[#FBE6C8]'
+          } shadow-[4px_4px_0_#17304F]`}
+        >
+          {calmMode ? (
+            <CheckCircle2 className="h-16 w-16 text-forest" />
+          ) : (
+            <Star className="h-16 w-16 fill-[#F2A33A] text-ink" />
+          )}
         </div>
         <h2 className="mt-6 text-3xl font-extrabold text-ink md:text-5xl">
           Materi Suara Selesai!
@@ -136,7 +155,7 @@ export function SoundModeView({
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-3 border-ink pb-4">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center gap-2 rounded-2xl border-2 border-ink bg-peach px-4 py-2 text-sm font-bold text-ink shadow-[2px_2px_0_#17304F]">
-            <Volume2 className="h-5 w-5 text-ink animate-pulse" />
+            <Volume2 className={`h-5 w-5 text-ink ${calmMode ? '' : 'animate-pulse'}`} />
             Mode Suara Aktif · Poin {currentIdx + 1} dari {points.length}
           </span>
 

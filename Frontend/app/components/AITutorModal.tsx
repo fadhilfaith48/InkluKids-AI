@@ -1,15 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Sparkles, Smile, Lightbulb, BookA, Loader2, Volume2, ShieldCheck } from 'lucide-react';
 import { askAITutor } from '@/lib/api-client';
 import { ExplanationResult } from '@/types';
+
+export type TutorRequestType = 'lebih_mudah' | 'beri_contoh' | 'kata_sulit';
 
 interface AITutorModalProps {
   isOpen: boolean;
   onClose: () => void;
   pointText: string;
   ocrText: string;
+  initialRequestType?: TutorRequestType | null;
   speakText?: (text: string) => void;
   onViewSource?: (quote: string, isValid: boolean) => void;
 }
@@ -19,19 +22,16 @@ export function AITutorModal({
   onClose,
   pointText,
   ocrText,
+  initialRequestType = null,
   speakText,
   onViewSource,
 }: AITutorModalProps) {
   const [loading, setLoading] = useState(false);
   const [explanation, setExplanation] = useState<ExplanationResult | null>(null);
-  const [selectedType, setSelectedType] = useState<
-    'lebih_mudah' | 'beri_contoh' | 'kata_sulit' | null
-  >(null);
+  const [selectedType, setSelectedType] = useState<TutorRequestType | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isOpen) return null;
-
-  const handleRequest = async (type: 'lebih_mudah' | 'beri_contoh' | 'kata_sulit') => {
+  const handleRequest = async (type: TutorRequestType) => {
     setSelectedType(type);
     setLoading(true);
     setError(null);
@@ -49,6 +49,27 @@ export function AITutorModal({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isOpen) {
+      setLoading(false);
+      setExplanation(null);
+      setSelectedType(null);
+      setError(null);
+      return;
+    }
+
+    if (initialRequestType && pointText) {
+      void handleRequest(initialRequestType);
+    } else {
+      setExplanation(null);
+      setSelectedType(null);
+      setError(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, pointText, initialRequestType]);
+
+  if (!isOpen) return null;
 
   return (
     <div

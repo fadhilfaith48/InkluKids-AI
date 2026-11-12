@@ -21,7 +21,7 @@ import { LearningStepsIndicator } from './components/LearningStepsIndicator';
 import { SymbolResponseBar } from './components/SymbolResponseBar';
 import { ScanModal } from './components/ScanModal';
 import { SourceModal } from './components/SourceModal';
-import { AITutorModal } from './components/AITutorModal';
+import { AITutorModal, TutorRequestType } from './components/AITutorModal';
 import { RestReminderModal } from './components/RestReminderModal';
 import { HelpModal } from './components/HelpModal';
 import { ReadModeView } from './components/ReadModeView';
@@ -67,6 +67,9 @@ export default function App() {
   // Active Lesson
   const [currentLesson, setCurrentLesson] = useState<ScanResult>(sampleLessons[0]);
   const [history, setHistory] = useState<ScanResult[]>([]);
+  const [activePointIdx, setActivePointIdx] = useState(0);
+  const [selectedVisualTerm, setSelectedVisualTerm] = useState<string | null>(null);
+  const [completedInSession, setCompletedInSession] = useState(0);
 
   // Modals
   const [isScanOpen, setIsScanOpen] = useState(false);
@@ -93,9 +96,11 @@ export default function App() {
   const [tutorModalData, setTutorModalData] = useState<{
     isOpen: boolean;
     pointText: string;
+    initialRequestType?: TutorRequestType | null;
   }>({
     isOpen: false,
     pointText: '',
+    initialRequestType: null,
   });
 
   // Accessibility Settings
@@ -226,28 +231,40 @@ export default function App() {
   // Mulai belajar dengan mode terpilih dari Beranda
   const handleStartLearning = (mode: LearningMode) => {
     setActiveMode(mode);
+    setActivePointIdx(0);
+    setSelectedVisualTerm(null);
     setCurrentStep('read');
     setActiveTab('learn');
     speakText(`Mulai belajar ${currentLesson.title} dalam Mode ${mode === 'read' ? 'Baca' : mode === 'visual' ? 'Visual' : 'Suara'}`);
   };
 
+  const handleOpenScanModal = () => {
+    setCurrentStep('photo');
+    setIsScanOpen(true);
+  };
+
   // Saat selesai scan buku baru
   const handleScanSuccess = (newLesson: ScanResult) => {
     setCurrentLesson(newLesson);
+    setActivePointIdx(0);
+    setSelectedVisualTerm(null);
     setCurrentStep('read');
     setActiveTab('learn');
     setMascotMessage(`Buku "${newLesson.title}" berhasil dipindai!`);
     speakText(`Buku ${newLesson.title} berhasil dipindai dan siap dipelajari.`);
 
-    void saveMaterial(newLesson).then(({ items, saved }) => {
+    void saveMaterial(newLesson).then(({ items, saved, error }) => {
       setCurrentLesson(saved);
       setHistory(items);
+      if (error) setMascotMessage(error);
     });
   };
 
   // Buka materi dari riwayat
   const handleSelectHistoryLesson = (lesson: ScanResult) => {
     setCurrentLesson(lesson);
+    setActivePointIdx(0);
+    setSelectedVisualTerm(null);
     setCurrentStep('read');
     setActiveTab('learn');
     speakText(`Membuka materi ${lesson.title}`);
@@ -261,18 +278,20 @@ export default function App() {
   // Simpan kemajuan materi (selesai belajar / update bintang)
   const handleUpdateLesson = (updated: ScanResult) => {
     setCurrentLesson(updated);
-    void saveMaterial(updated).then(({ items, saved }) => {
+    void saveMaterial(updated).then(({ items, saved, error }) => {
       setCurrentLesson(saved);
       setHistory(items);
+      if (error) setMascotMessage(error);
     });
   };
 
   // Simpan verifikasi guru (status, catatan, dan poin yang disunting)
   const handleVerifyLesson = (updated: ScanResult) => {
     setCurrentLesson(updated);
-    void saveVerification(updated).then(({ items, saved }) => {
+    void saveVerification(updated).then(({ items, saved, error }) => {
       setCurrentLesson(saved);
       setHistory(items);
+      if (error) setMascotMessage(error);
     });
   };
 
@@ -330,31 +349,47 @@ export default function App() {
   };
 
   // Buka modal AI Tutor (Tanya Penjelasan Lain)
-  const handleOpenTutorModal = (pointText: string) => {
+  const handleOpenTutorModal = (
+    pointText: string,
+    initialRequestType: TutorRequestType | null = null
+  ) => {
     setTutorModalData({
       isOpen: true,
       pointText,
+      initialRequestType,
     });
     setMascotMessage('Mau penjelasan yang lebih mudah atau contoh lain? Tanya Milo!');
   };
 
+  const getActiveCardText = (): string => {
+    if (activeMode === 'visual' && currentLesson.flashcards?.length) {
+      const card =
+        currentLesson.flashcards[activePointIdx] ?? currentLesson.flashcards[0];
+      return `${card.word}: ${card.meaning}`;
+    }
+    const point =
+      currentLesson.points?.[activePointIdx] ?? currentLesson.points?.[0];
+    return point?.text || currentLesson.title;
+  };
+
   // Respon dari Kartu Simbol Cepat
   const handleSymbolSelect = (symbol: SymbolResponseType) => {
+    const activeText = getActiveCardText();
     switch (symbol) {
       case 'confused':
       case 'easier':
-        if (currentLesson?.points?.[0]) {
-          handleOpenTutorModal(currentLesson.points[0].text);
+        if (activeText) {
+          handleOpenTutorModal(activeText, 'lebih_mudah');
         }
         break;
       case 'example':
-        if (currentLesson?.points?.[0]) {
-          handleOpenTutorModal(currentLesson.points[0].text);
+        if (activeText) {
+          handleOpenTutorModal(activeText, 'beri_contoh');
         }
         break;
       case 'repeat':
-        if (currentLesson?.points?.[0]) {
-          speakText(currentLesson.points[0].text);
+        if (activeText) {
+          speakText(activeText);
         }
         break;
       case 'rest':
@@ -374,6 +409,15 @@ export default function App() {
       stars_earned: (currentLesson.stars_earned || 0) + (alreadyCompleted ? 0 : 1),
     };
     handleUpdateLesson(updatedLesson);
+
+    // Pengingat istirahat ramah anak setelah menyelesaikan beberapa materi dalam satu sesi
+    setCompletedInSession((prev) => {
+      const nextCount = prev + 1;
+      if (nextCount >= 2 && nextCount % 2 === 0) {
+        setIsRestOpen(true);
+      }
+      return nextCount;
+    });
   };
 
   // Saat kuis selesai
@@ -441,7 +485,7 @@ export default function App() {
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenScan={() => setIsScanOpen(true)}
+        onOpenScan={handleOpenScanModal}
         onOpenHelp={() => setIsHelpOpen(true)}
         userRole={userRole}
         onToggleRole={handleToggleRole}
@@ -496,7 +540,7 @@ export default function App() {
               <div className="mt-8 flex flex-wrap gap-4">
                 <button
                   className="primary-button text-base sm:text-lg px-6 py-4 flex items-center gap-3"
-                  onClick={() => setIsScanOpen(true)}
+                  onClick={handleOpenScanModal}
                 >
                   <Camera className="h-6 w-6" /> Pindai Buku Pelajaran
                 </button>
@@ -657,7 +701,7 @@ export default function App() {
 
                     <button
                       className="secondary-button text-xs font-bold py-2 px-3.5 flex items-center gap-1.5"
-                      onClick={() => setIsScanOpen(true)}
+                      onClick={handleOpenScanModal}
                     >
                       <Camera className="h-4 w-4 text-forest" />
                       Ganti Buku
@@ -673,9 +717,11 @@ export default function App() {
                   <ReadModeView
                     lesson={currentLesson}
                     onOpenSourceModal={handleOpenSourceModal}
-                    onOpenTutorModal={handleOpenTutorModal}
+                    onOpenTutorModal={(text) => handleOpenTutorModal(text, null)}
                     onOpenQuiz={() => setIsQuizOpen(true)}
+                    onPointChange={setActivePointIdx}
                     onOpenFlashcardForTerm={(term) => {
+                      setSelectedVisualTerm(term);
                       setActiveMode('visual');
                       setMascotMessage(`Membuka visual flashcard untuk kata "${term}"!`);
                       speakText(`Membuka flashcard visual untuk kata ${term}`);
@@ -689,8 +735,10 @@ export default function App() {
                 {activeMode === 'visual' && (
                   <VisualModeView
                     lesson={currentLesson}
+                    selectedTerm={selectedVisualTerm}
                     onOpenSourceModal={handleOpenSourceModal}
                     onOpenQuiz={() => setIsQuizOpen(true)}
+                    onCardChange={setActivePointIdx}
                     speakText={speakText}
                     onCompleteLesson={handleCompleteLesson}
                     calmMode={settings.calmMode}
@@ -702,6 +750,7 @@ export default function App() {
                     lesson={currentLesson}
                     onOpenSourceModal={handleOpenSourceModal}
                     onOpenQuiz={() => setIsQuizOpen(true)}
+                    onPointChange={setActivePointIdx}
                     speakText={speakText}
                     onCompleteLesson={handleCompleteLesson}
                     calmMode={settings.calmMode}
@@ -724,7 +773,7 @@ export default function App() {
             history={history}
             onSelectLesson={handleSelectHistoryLesson}
             onDeleteLesson={handleDeleteHistoryLesson}
-            onOpenScan={() => setIsScanOpen(true)}
+            onOpenScan={handleOpenScanModal}
             onCreateMaterial={
               profile?.role === 'guru'
                 ? () => setIsCreateMaterialOpen(true)
@@ -752,7 +801,10 @@ export default function App() {
       {/* Modals */}
       <ScanModal
         isOpen={isScanOpen}
-        onClose={() => setIsScanOpen(false)}
+        onClose={() => {
+          setIsScanOpen(false);
+          setCurrentStep((prev) => (prev === 'photo' ? 'read' : prev));
+        }}
         onScanSuccess={handleScanSuccess}
       />
 
@@ -784,9 +836,16 @@ export default function App() {
 
       <AITutorModal
         isOpen={tutorModalData.isOpen}
-        onClose={() => setTutorModalData((prev) => ({ ...prev, isOpen: false }))}
+        onClose={() =>
+          setTutorModalData((prev) => ({
+            ...prev,
+            isOpen: false,
+            initialRequestType: null,
+          }))
+        }
         pointText={tutorModalData.pointText}
         ocrText={currentLesson.ocr_text}
+        initialRequestType={tutorModalData.initialRequestType}
         speakText={speakText}
         onViewSource={(quote, isValid) =>
           handleOpenSourceModal(tutorModalData.pointText, quote, isValid)

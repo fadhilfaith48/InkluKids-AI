@@ -1,31 +1,37 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Sparkles,
   ShieldCheck,
   ArrowRight,
   ArrowLeft,
+  ArrowUp,
   Sun,
   Waves,
   Cloud,
+  CloudRain,
   Droplet,
   Wind,
   Leaf,
   Heart,
   Eye,
   Hand,
+  Umbrella,
+  BookOpen,
   CheckCircle2,
   Star,
   Award,
 } from 'lucide-react';
-import { ScanResult, Flashcard, VisualStep } from '@/types';
+import { ScanResult, Flashcard } from '@/types';
 import confetti from 'canvas-confetti';
 
 interface VisualModeViewProps {
   lesson: ScanResult;
+  selectedTerm?: string | null;
   onOpenSourceModal: (pointText: string, quote: string, isValid?: boolean) => void;
   onOpenQuiz?: () => void;
+  onCardChange?: (index: number) => void;
   speakText: (text: string) => void;
   onCompleteLesson: () => void;
   calmMode?: boolean;
@@ -33,8 +39,10 @@ interface VisualModeViewProps {
 
 export function VisualModeView({
   lesson,
+  selectedTerm,
   onOpenSourceModal,
   onOpenQuiz,
+  onCardChange,
   speakText,
   onCompleteLesson,
   calmMode = false,
@@ -61,6 +69,26 @@ export function VisualModeView({
           is_valid_quote: pt.is_valid_quote,
         }));
 
+  useEffect(() => {
+    setIsCompleted(false);
+    if (selectedTerm && effectiveCards.length > 0) {
+      const target = selectedTerm.trim().toLowerCase();
+      const matchIdx = effectiveCards.findIndex(
+        (card) =>
+          card.word.toLowerCase().includes(target) ||
+          target.includes(card.word.toLowerCase())
+      );
+      setActiveCardIdx(matchIdx >= 0 ? matchIdx : 0);
+    } else {
+      setActiveCardIdx(0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.id, selectedTerm]);
+
+  useEffect(() => {
+    onCardChange?.(activeCardIdx);
+  }, [activeCardIdx, onCardChange]);
+
   const currentCard = effectiveCards[activeCardIdx];
   const isLast = activeCardIdx === effectiveCards.length - 1;
 
@@ -73,6 +101,8 @@ export function VisualModeView({
         return <Waves {...props} />;
       case 'cloud':
         return <Cloud {...props} />;
+      case 'cloud-rain':
+        return <CloudRain {...props} />;
       case 'droplet':
       case 'droplets':
         return <Droplet {...props} />;
@@ -84,6 +114,12 @@ export function VisualModeView({
         return <Heart {...props} />;
       case 'eye':
         return <Eye {...props} />;
+      case 'arrow-up':
+        return <ArrowUp {...props} />;
+      case 'umbrella':
+        return <Umbrella {...props} />;
+      case 'book':
+        return <BookOpen {...props} />;
       default:
         return <Sparkles {...props} />;
     }
@@ -123,7 +159,11 @@ export function VisualModeView({
     return (
       <article className="learning-card text-center py-12 px-6">
         <div className="mx-auto grid h-24 w-24 place-items-center rounded-full border-3 border-ink bg-mint shadow-[3px_3px_0_#17304F]">
-          <Star className="h-12 w-12 fill-[#277A5B] text-ink" />
+          {calmMode ? (
+            <CheckCircle2 className="h-12 w-12 text-forest" />
+          ) : (
+            <Star className="h-12 w-12 fill-[#277A5B] text-ink" />
+          )}
         </div>
         <h2 className="mt-6 text-3xl font-extrabold text-ink md:text-4xl">
           Visual Flashcard Selesai!

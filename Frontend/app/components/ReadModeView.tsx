@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Volume2,
   ShieldCheck,
@@ -22,6 +22,7 @@ interface ReadModeViewProps {
   onOpenTutorModal: (pointText: string) => void;
   onOpenFlashcardForTerm?: (term: string) => void;
   onOpenQuiz?: () => void;
+  onPointChange?: (index: number) => void;
   speakText: (text: string) => void;
   onCompleteLesson: () => void;
   calmMode?: boolean;
@@ -33,6 +34,7 @@ export function ReadModeView({
   onOpenTutorModal,
   onOpenFlashcardForTerm,
   onOpenQuiz,
+  onPointChange,
   speakText,
   onCompleteLesson,
   calmMode = false,
@@ -40,6 +42,15 @@ export function ReadModeView({
   const points = lesson.points || [];
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+
+  useEffect(() => {
+    setCurrentIdx(0);
+    setIsCompleted(false);
+  }, [lesson.id]);
+
+  useEffect(() => {
+    onPointChange?.(currentIdx);
+  }, [currentIdx, onPointChange]);
 
   const currentPoint: SimplifiedPoint | undefined = points[currentIdx];
   const isLast = currentIdx === points.length - 1;
@@ -83,15 +94,23 @@ export function ReadModeView({
   if (isCompleted) {
     return (
       <article className="learning-card text-center py-12 px-6">
-        <div className="mx-auto grid h-24 w-24 place-items-center rounded-full border-3 border-ink bg-[#FFF2B2] shadow-[3px_3px_0_#17304F]">
-          <Star className="h-12 w-12 fill-[#F2A33A] text-ink" />
+        <div
+          className={`mx-auto grid h-24 w-24 place-items-center rounded-full border-3 border-ink ${
+            calmMode ? 'bg-mint' : 'bg-[#FFF2B2]'
+          } shadow-[3px_3px_0_#17304F]`}
+        >
+          {calmMode ? (
+            <CheckCircle2 className="h-12 w-12 text-forest" />
+          ) : (
+            <Star className="h-12 w-12 fill-[#F2A33A] text-ink" />
+          )}
         </div>
         <h2 className="mt-6 text-3xl font-extrabold text-ink md:text-4xl">
           Hebat Sekali! Kamu Selesai!
         </h2>
         <p className="mt-3 text-lg text-slateText max-w-md mx-auto">
-          Kamu sudah membaca seluruh {points.length} kartu materi &ldquo;{lesson.title}&rdquo;.
-          Kamu dapat 1 Bintang Emas!
+          Kamu sudah membaca seluruh {points.length} kartu materi &ldquo;{lesson.title}&rdquo;.{' '}
+          {calmMode ? 'Materi telah ditandai selesai.' : 'Kamu dapat 1 Bintang Emas!'}
         </p>
 
         <div className="mt-8 flex flex-wrap justify-center gap-4">
