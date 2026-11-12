@@ -20,6 +20,7 @@ to authenticated
 with check (public.is_teacher_of(owner_id));
 
 -- Catatan:
--- - Policy update guru (scans_update_teacher) sudah dipakai untuk memperbarui
---   salinan saat guru menekan "Bagikan" lagi.
+-- - Policy update guru (scans_update_teacher pada Docs/SQL-schema.sql) dipakai
+--   khusus untuk memperbarui salinan (source_scan_id is not null) saat guru
+--   menekan "Bagikan" lagi, sedangkan perubahan poin scan asli siswa melalui RPC verify_scan.
 -- - Siswa tetap tidak bisa mengubah materi milik guru, hanya salinannya sendiri.

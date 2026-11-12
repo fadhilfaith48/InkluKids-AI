@@ -331,13 +331,15 @@ to authenticated
 using (owner_id = auth.uid())
 with check (owner_id = auth.uid());
 
--- Guru boleh menyunting judul/poin materi siswa binaannya.
+-- Guru boleh memperbarui salinan materi buatannya yang dibagikan ke siswa binaan.
+-- Perubahan poin/judul pada scan asli siswa wajib melalui RPC verify_scan
+-- agar guru tidak memiliki izin UPDATE scans bebas.
 drop policy if exists "scans_update_teacher" on public.scans;
 create policy "scans_update_teacher"
 on public.scans for update
 to authenticated
-using (public.is_teacher_of(owner_id))
-with check (public.is_teacher_of(owner_id));
+using (source_scan_id is not null and public.is_teacher_of(owner_id))
+with check (source_scan_id is not null and public.is_teacher_of(owner_id));
 
 drop policy if exists "scans_delete_own" on public.scans;
 create policy "scans_delete_own"
@@ -428,7 +430,7 @@ grant select, insert, delete on public.profiles to authenticated;
 -- profiles_prevent_role_change di atas).
 revoke update on public.profiles from authenticated;
 grant update (name, grade, accessibility_settings) on public.profiles to authenticated;
-grant select, insert, update, delete on public.guardianships to authenticated;
+grant select on public.guardianships to authenticated;
 grant select, insert, update, delete on public.scans to authenticated;
 grant select, insert, update, delete on public.teacher_verifications to authenticated;
 grant select, insert, update, delete on public.quiz_results to authenticated;
