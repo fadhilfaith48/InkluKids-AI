@@ -6,12 +6,9 @@ Aplikasi web edukasi yang mengubah foto halaman buku pelajaran menjadi materi ya
 
 - Tim: **Git_Commit** — Fadhil Faith Al Abrisam Dewanto
 - Repository: https://github.com/fadhilfaith48/InkluKids-AI
-- Video demo: **WAJIB DIISI SEBELUM SUBMIT** (URL YouTube Unlisted/Public)
-- Aplikasi (Vercel): **WAJIB DIISI SEBELUM SUBMIT**
-- Backend API: **WAJIB DIISI SEBELUM SUBMIT**
-
-> **Template submission:** ganti setiap tanda "WAJIB DIISI SEBELUM SUBMIT" dengan
-> data asli sebelum commit final. Jangan mengisi dengan data palsu.
+- Video demo: **Menunggu unggahan YouTube** (URL Unlisted/Public, 3–5 menit, diisi sebelum code freeze)
+- Aplikasi (Vercel): https://inklu-kids-ai.vercel.app
+- Backend API (Railway): https://inklukids-ai-production.up.railway.app (health check: https://inklukids-ai-production.up.railway.app/health)
 
 ## Cara Demo
 
@@ -360,7 +357,7 @@ Bila kuota AI bermasalah, gunakan **Contoh Halaman** pada modal pindai atau
 3. Supabase Storage: bucket privat `scans`, `lib/storage.ts`, signed URL (opsional, jika ingin menyimpan gambar asli).
 4. ~~Verifikasi JWT Supabase di FastAPI (JWKS + `aud` + `exp`) dan header `Authorization` dari frontend.~~ **Selesai** (`AUTH_MODE=optional`).
 5. ~~RPC verifikasi guru agar perubahan poin tidak memakai `UPDATE scans` bebas.~~ **Selesai** (fungsi `verify_scan` di SQL dan dipanggil `materials.ts`).
-6. Uji RLS lintas akun, uji JWT, `npm run build`, `pytest`, dan deploy ulang.
+6. ~~Uji RLS lintas akun, uji JWT, `npm run build`, `pytest`, dan deploy ulang.~~ **Selesai** (CI `pytest` + `next build` aktif; backend Railway & frontend Vercel sudah live).
 
 ## 9. Privasi, Etika, dan Efisiensi
 
