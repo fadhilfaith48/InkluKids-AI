@@ -7,10 +7,7 @@ import {
   Edit3,
   Save,
   RotateCcw,
-  Sparkles,
-  BookOpen,
   UserCheck,
-  AlertCircle,
   Lightbulb,
   ShieldCheck,
   Award,
@@ -48,6 +45,7 @@ export function TeacherModeView({
     );
     setNotes(lesson.teacher_verification?.notes || '');
     setSavedSuccess(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset state form editor hanya saat beralih ke ID materi lain
   }, [lesson.id]);
 
   const isAlreadyVerified = lesson.teacher_verification?.isVerified || false;
@@ -122,15 +120,15 @@ export function TeacherModeView({
   return (
     <div className="space-y-6">
       {/* Banner Mode Guru */}
-      <div className="rounded-3xl border-3 border-ink bg-white p-6 shadow-[4px_4px_0_#17304F]">
+      <div className="rounded-3xl border-3 border-ink bg-white p-4 sm:p-6 shadow-[4px_4px_0_#17304F]">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#DCE8FD] text-[#1F5F85] border-2 border-ink">
+          <div className="flex min-w-0 items-start sm:items-center gap-3">
+            <span className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl bg-[#DCE8FD] text-[#1F5F85] border-2 border-ink">
               <UserCheck className="h-7 w-7" />
             </span>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-xl font-extrabold text-ink md:text-2xl">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-extrabold text-ink md:text-2xl break-words">
                   Panel Verifikasi Guru & Pendamping
                 </h2>
                 {isAlreadyVerified && (
@@ -145,12 +143,12 @@ export function TeacherModeView({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex w-full sm:w-auto flex-wrap items-center gap-2">
             {isAlreadyVerified ? (
               <button
                 type="button"
                 onClick={handleRevokeVerification}
-                className="secondary-button text-xs py-2 px-3 flex items-center gap-1.5"
+                className="secondary-button flex-1 sm:flex-initial text-xs py-2 px-3 flex items-center justify-center gap-1.5"
                 title="Batal verifikasi jika ingin mengedit ulang"
               >
                 <RotateCcw className="h-4 w-4" /> Batalkan Verifikasi
@@ -159,7 +157,7 @@ export function TeacherModeView({
             <button
               type="button"
               onClick={handleVerifyAndSave}
-              className="primary-button text-sm py-2.5 px-4 flex items-center gap-2"
+              className="primary-button flex-1 sm:flex-initial text-sm py-2.5 px-4 flex items-center justify-center gap-2"
             >
               <Save className="h-4 w-4" />
               <span>{isAlreadyVerified ? 'Perbarui Verifikasi' : 'Verifikasi & Simpan'}</span>
@@ -178,11 +176,11 @@ export function TeacherModeView({
       {/* Grid: Teks Buku Asli (OCR) vs Editor Poin AI */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Kolom Kiri: Teks Buku Asli (OCR) */}
-        <div className="lg:col-span-5 rounded-3xl border-3 border-ink bg-[#FFFDF9] p-5 shadow-[3px_3px_0_#17304F]">
-          <div className="flex items-center justify-between border-b-2 border-dashed border-gray-200 pb-3">
+        <div className="lg:col-span-5 min-w-0 rounded-3xl border-3 border-ink bg-[#FFFDF9] p-4 sm:p-5 shadow-[3px_3px_0_#17304F]">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-dashed border-gray-200 pb-3">
             <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-forest" />
-              <h3 className="font-extrabold text-ink text-base">
+              <FileText className="h-5 w-5 flex-shrink-0 text-forest" />
+              <h3 className="font-extrabold text-ink text-sm sm:text-base">
                 Teks Asli Buku Pelajaran (OCR)
               </h3>
             </div>
@@ -191,11 +189,11 @@ export function TeacherModeView({
             </span>
           </div>
 
-          <p className="mt-2 text-xs text-slateText">
+          <p className="mt-2 text-xs text-slateText break-words">
             Halaman: <strong>&ldquo;{lesson.title}&rdquo;</strong>
           </p>
 
-          <div className="mt-3 max-h-[500px] overflow-y-auto rounded-2xl border-2 border-ink bg-white p-4 font-mono text-xs leading-relaxed text-ink/90 whitespace-pre-wrap select-all">
+          <div className="mt-3 max-h-[360px] sm:max-h-[500px] overflow-y-auto overflow-x-hidden rounded-2xl border-2 border-ink bg-white p-3.5 sm:p-4 font-mono text-xs leading-relaxed text-ink/90 whitespace-pre-wrap break-words select-all">
             {lesson.ocr_text || '(Tidak ada teks OCR yang terdeteksi)'}
           </div>
 
@@ -208,12 +206,12 @@ export function TeacherModeView({
         </div>
 
         {/* Kolom Kanan: Editor Poin Belajar Siswa */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="rounded-3xl border-3 border-ink bg-white p-5 shadow-[3px_3px_0_#17304F]">
-            <div className="flex items-center justify-between border-b-2 border-dashed border-gray-200 pb-3">
+        <div className="lg:col-span-7 min-w-0 space-y-4">
+          <div className="rounded-3xl border-3 border-ink bg-white p-4 sm:p-5 shadow-[3px_3px_0_#17304F]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-dashed border-gray-200 pb-3">
               <div className="flex items-center gap-2">
-                <Edit3 className="h-5 w-5 text-forest" />
-                <h3 className="font-extrabold text-ink text-base">
+                <Edit3 className="h-5 w-5 flex-shrink-0 text-forest" />
+                <h3 className="font-extrabold text-ink text-sm sm:text-base">
                   Edit Poin Pembelajaran Siswa ({points.length} Poin)
                 </h3>
               </div>
@@ -245,17 +243,17 @@ export function TeacherModeView({
             </div>
 
             {/* List Poin yang Bisa Diedit */}
-            <div className="mt-4 space-y-4 max-h-[500px] overflow-y-auto pr-1">
+            <div className="mt-4 space-y-4 max-h-[60vh] sm:max-h-[500px] overflow-y-auto overflow-x-hidden pr-1">
               {points.map((pt, idx) => (
                 <div
                   key={idx}
-                  className="rounded-2xl border-2 border-ink bg-[#FAF6F0] p-4 space-y-2 shadow-[2px_2px_0_#17304F]"
+                  className="rounded-2xl border-2 border-ink bg-[#FAF6F0] p-3.5 sm:p-4 space-y-2 shadow-[2px_2px_0_#17304F]"
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-1.5">
                     <span className="rounded-full bg-sky px-2.5 py-0.5 text-xs font-extrabold text-ink border border-ink">
                       Poin #{idx + 1}
                     </span>
-                    <span className="text-[11px] text-slateText font-medium">
+                    <span className="min-w-0 text-[11px] text-slateText font-medium break-words">
                       Kutipan Sumber: &ldquo;{(pt.source_quote || '').slice(0, 35)}...&rdquo;
                     </span>
                   </div>
@@ -324,7 +322,7 @@ export function TeacherModeView({
               <button
                 type="button"
                 onClick={handleVerifyAndSave}
-                className="primary-button text-sm py-2.5 px-6 flex items-center gap-2"
+                className="primary-button w-full sm:w-auto text-sm py-2.5 px-6 flex items-center justify-center gap-2"
               >
                 <Award className="h-4 w-4" />
                 Simpan & Berikan Cap Verifikasi

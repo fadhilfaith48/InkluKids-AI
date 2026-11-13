@@ -43,7 +43,6 @@ export function VisualModeView({
   onOpenSourceModal,
   onOpenQuiz,
   onCardChange,
-  speakText,
   onCompleteLesson,
   calmMode = false,
 }: VisualModeViewProps) {
@@ -82,7 +81,7 @@ export function VisualModeView({
     } else {
       setActiveCardIdx(0);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- lompat ke kartu istilah hanya ketika materi atau istilah terpilih berubah
   }, [lesson.id, selectedTerm]);
 
   useEffect(() => {
@@ -200,8 +199,8 @@ export function VisualModeView({
     <article className="learning-card" aria-label="Mode Visual Flashcard">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-dashed border-gray-200 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="inline-block rounded-full bg-mint px-3 py-1 text-xs font-bold text-forest border border-forest">
               Kartu Visual {activeCardIdx + 1} dari {effectiveCards.length}
             </span>
@@ -216,20 +215,20 @@ export function VisualModeView({
               </span>
             )}
           </div>
-          <h2 className="mt-2 text-2xl font-extrabold text-ink md:text-3xl">
+          <h2 className="mt-2 text-2xl font-extrabold text-ink md:text-3xl break-words">
             {currentCard.word}
           </h2>
-          <p className="mt-1 text-base font-semibold text-slateText">
+          <p className="mt-1 text-base font-semibold text-slateText break-words">
             {currentCard.meaning}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {onOpenQuiz && (
             <button
               type="button"
               onClick={onOpenQuiz}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-ink bg-[#FFF9E6] px-3 py-1.5 text-xs font-bold text-ink hover:bg-[#FFF2B2] shadow-[1px_1px_0_#17304F] transition-all"
+              className="inline-flex min-h-12 items-center gap-1.5 rounded-xl border border-ink bg-[#FFF9E6] px-3 py-2 text-xs font-bold text-ink hover:bg-[#FFF2B2] shadow-[1px_1px_0_#17304F] transition-all"
             >
               <Award className="h-3.5 w-3.5 text-[#F2A33A]" />
               Kuis Ceria
@@ -280,7 +279,7 @@ export function VisualModeView({
               <span className="mt-3 rounded-full bg-mint px-2.5 py-0.5 text-xs font-bold text-forest">
                 Langkah {step.order}
               </span>
-              <p className="mt-2 text-sm font-bold text-ink leading-snug">
+              <p className="mt-2 text-sm font-bold text-ink leading-snug break-words">
                 {step.text}
               </p>
             </div>
@@ -292,10 +291,10 @@ export function VisualModeView({
       {currentCard.sign_description && (
         <div className="mt-6 rounded-2xl border-2 border-ink bg-sky/40 p-4 shadow-[2px_2px_0_#17304F]">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-ink">
-            <Hand className="h-4 w-4 text-ink" />
+            <Hand className="h-4 w-4 flex-shrink-0 text-ink" />
             Saran Gerakan Isyarat Teks:
           </div>
-          <p className="mt-1.5 text-sm font-semibold text-ink leading-relaxed">
+          <p className="mt-1.5 text-sm font-semibold text-ink leading-relaxed break-words">
             {currentCard.sign_description}
           </p>
         </div>
@@ -307,16 +306,16 @@ export function VisualModeView({
           <p className="text-xs font-bold uppercase tracking-wider text-slateText">
             Contoh Kalimat Nyata:
           </p>
-          <p className="mt-1 text-sm font-bold text-ink italic">
+          <p className="mt-1 text-sm font-bold text-ink italic break-words">
             &ldquo;{currentCard.example_sentence}&rdquo;
           </p>
         </div>
       )}
 
       {/* Navigasi Card */}
-      <div className="mt-8 flex items-center justify-between gap-4 border-t-2 border-dashed border-gray-200 pt-6">
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t-2 border-dashed border-gray-200 pt-6 sm:flex-nowrap sm:gap-4">
         <button
-          className="secondary-button px-5"
+          className="secondary-button flex-1 px-4 sm:flex-initial sm:px-5"
           onClick={handlePrev}
           disabled={activeCardIdx === 0}
           aria-label="Kartu visual sebelumnya"
@@ -325,7 +324,7 @@ export function VisualModeView({
         </button>
 
         <button
-          className="primary-button px-8 flex items-center gap-2"
+          className="primary-button flex-1 px-5 sm:flex-initial sm:px-8 flex items-center gap-2"
           onClick={handleNext}
           aria-label={isLast ? 'Selesaikan visual flashcard' : 'Lanjut ke kartu visual berikutnya'}
         >

@@ -3,10 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Volume2,
-  VolumeX,
   RotateCcw,
   ArrowRight,
-  ArrowLeft,
   ShieldCheck,
   CheckCircle2,
   Star,
@@ -57,6 +55,7 @@ export function SoundModeView({
       }`;
       speakText(speech);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- hanya picu pembacaan otomatis saat indeks poin atau status selesai berubah
   }, [currentIdx, isCompleted]);
 
   const handleNext = () => {
@@ -153,10 +152,10 @@ export function SoundModeView({
     >
       {/* Top Banner Status */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-3 border-ink pb-4">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-2 rounded-2xl border-2 border-ink bg-peach px-4 py-2 text-sm font-bold text-ink shadow-[2px_2px_0_#17304F]">
-            <Volume2 className={`h-5 w-5 text-ink ${calmMode ? '' : 'animate-pulse'}`} />
-            Mode Suara Aktif · Poin {currentIdx + 1} dari {points.length}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-2xl border-2 border-ink bg-peach px-3.5 py-2 text-xs sm:text-sm font-bold text-ink shadow-[2px_2px_0_#17304F]">
+            <Volume2 className={`h-5 w-5 flex-shrink-0 text-ink ${calmMode ? '' : 'animate-pulse'}`} />
+            <span>Mode Suara Aktif · Poin {currentIdx + 1} dari {points.length}</span>
           </span>
 
           {lesson.teacher_verification?.isVerified && (
@@ -170,7 +169,7 @@ export function SoundModeView({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {onOpenQuiz && (
             <button
               type="button"
@@ -183,7 +182,7 @@ export function SoundModeView({
           )}
 
           <button
-            className="secondary-button text-sm font-bold px-4 py-2"
+            className="secondary-button text-xs sm:text-sm font-bold px-3.5 sm:px-4 py-2"
             onClick={() =>
               onOpenSourceModal(
                 currentPoint.text,
@@ -210,8 +209,8 @@ export function SoundModeView({
       )}
 
       {/* Teks Ekstra Besar & Jelas untuk Low Vision */}
-      <div className="my-8 rounded-3xl border-3 border-ink bg-white p-6 md:p-8 shadow-[3px_3px_0_#17304F]">
-        <h2 className="text-2xl font-extrabold leading-relaxed text-ink md:text-4xl">
+      <div className="my-6 sm:my-8 rounded-3xl border-3 border-ink bg-white p-5 sm:p-6 md:p-8 shadow-[3px_3px_0_#17304F]">
+        <h2 className="text-xl sm:text-2xl font-extrabold leading-relaxed text-ink md:text-4xl break-words">
           {currentPoint.text}
         </h2>
 
@@ -220,7 +219,7 @@ export function SoundModeView({
             <p className="text-sm font-bold uppercase tracking-wider text-amber-900">
               Perumpamaan Sehari-Hari:
             </p>
-            <p className="mt-1 text-lg font-bold text-ink leading-normal">
+            <p className="mt-1 text-base sm:text-lg font-bold text-ink leading-normal break-words">
               &ldquo;{currentPoint.analogy}&rdquo;
             </p>
           </div>
@@ -230,7 +229,7 @@ export function SoundModeView({
       {/* Tombol Kontrol Suara Utama (Ekstra Besar untuk Motorik & Low Vision) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button
-          className="secondary-button min-h-[4.5rem] text-lg font-extrabold flex items-center justify-center gap-3 focus-ring"
+          className="secondary-button min-h-[4.5rem] text-base sm:text-lg font-extrabold flex items-center justify-center gap-3 focus-ring"
           onClick={handleRepeat}
           aria-label="Ulangi pembacaan suara poin ini"
         >
@@ -239,7 +238,7 @@ export function SoundModeView({
         </button>
 
         <button
-          className="primary-button min-h-[4.5rem] text-lg font-extrabold flex items-center justify-center gap-3 focus-ring"
+          className="primary-button min-h-[4.5rem] text-base sm:text-lg font-extrabold flex items-center justify-center gap-3 focus-ring"
           onClick={handleNext}
           aria-label={isLast ? 'Selesaikan materi suara' : 'Lanjut ke poin suara berikutnya'}
         >
@@ -252,7 +251,7 @@ export function SoundModeView({
       {currentIdx > 0 && (
         <div className="mt-4 text-center">
           <button
-            className="text-sm font-bold text-slateText underline hover:text-ink focus-ring p-2"
+            className="inline-flex min-h-12 items-center justify-center px-4 text-sm font-bold text-slateText underline hover:text-ink focus-ring"
             onClick={handlePrev}
           >
             ← Kembali ke poin sebelumnya

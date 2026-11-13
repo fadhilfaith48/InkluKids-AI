@@ -10,8 +10,6 @@ import {
   Sparkles,
   ShieldCheck,
   Bookmark,
-  Check,
-  RotateCcw,
   UserCheck,
   Award,
 } from 'lucide-react';
@@ -43,7 +41,6 @@ import {
   UserRole,
 } from '@/types';
 import { sampleLessons } from '@/lib/seed-data';
-import { getHistory, saveToHistory, deleteFromHistory } from '@/lib/history';
 import { useAuth } from '@/lib/auth';
 import {
   listMaterials,
@@ -69,7 +66,7 @@ export default function App() {
   const [history, setHistory] = useState<ScanResult[]>([]);
   const [activePointIdx, setActivePointIdx] = useState(0);
   const [selectedVisualTerm, setSelectedVisualTerm] = useState<string | null>(null);
-  const [completedInSession, setCompletedInSession] = useState(0);
+  const [, setCompletedInSession] = useState(0);
 
   // Modals
   const [isScanOpen, setIsScanOpen] = useState(false);
@@ -537,23 +534,23 @@ export default function App() {
               </p>
 
               {/* Quick Actions */}
-              <div className="mt-8 flex flex-wrap gap-4">
+              <div className="mt-8 flex flex-wrap gap-3 sm:gap-4">
                 <button
-                  className="primary-button text-base sm:text-lg px-6 py-4 flex items-center gap-3"
+                  className="primary-button w-full sm:w-auto text-base sm:text-lg px-6 py-4 flex items-center justify-center gap-3"
                   onClick={handleOpenScanModal}
                 >
                   <Camera className="h-6 w-6" /> Pindai Buku Pelajaran
                 </button>
 
                 <button
-                  className="secondary-button text-base sm:text-lg px-6 py-4 flex items-center gap-2"
+                  className="secondary-button flex-1 sm:flex-initial text-base sm:text-lg px-5 sm:px-6 py-4 flex items-center justify-center gap-2"
                   onClick={() => setActiveTab('history')}
                 >
                   <Bookmark className="h-5 w-5 text-forest" /> Materi Saya
                 </button>
 
                 <button
-                  className="secondary-button text-base sm:text-lg px-6 py-4 flex items-center gap-2 bg-[#FFF9E6]"
+                  className="secondary-button flex-1 sm:flex-initial text-base sm:text-lg px-5 sm:px-6 py-4 flex items-center justify-center gap-2 bg-[#FFF9E6]"
                   onClick={() => setIsQuizOpen(true)}
                 >
                   <Award className="h-5 w-5 text-[#F2A33A]" /> Kuis Ceria Singkat
@@ -563,11 +560,11 @@ export default function App() {
 
             {/* Pilihan 3 Mode Belajar */}
             <section className="mt-12" aria-label="Pilih Mode Belajar Utama">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <h2 className="text-xl font-extrabold text-ink md:text-2xl">
                   Pilih Mode Belajarmu
                 </h2>
-                <span className="text-xs font-bold text-slateText">
+                <span className="text-xs font-bold text-slateText break-words">
                   Buku Aktif: &ldquo;{currentLesson.title}&rdquo;
                 </span>
               </div>
@@ -667,11 +664,11 @@ export default function App() {
               <>
                 {/* Top Bar: Pemilih Mode Belajar & Tombol Kuis & Pindai Buku */}
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex rounded-2xl border-2 border-ink bg-[#FAF6F0] p-1 shadow-[2px_2px_0_#17304F]">
+                  <div className="grid w-full grid-cols-3 gap-1 rounded-2xl border-2 border-ink bg-[#FAF6F0] p-1 shadow-[2px_2px_0_#17304F] sm:flex sm:w-auto">
                     {(['read', 'visual', 'sound'] as LearningMode[]).map((mKey) => (
                       <button
                         key={mKey}
-                        className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all focus-ring ${
+                        className={`flex min-h-12 items-center justify-center gap-1.5 rounded-xl px-2 sm:px-3 py-2 text-[11px] sm:text-xs font-bold transition-all focus-ring ${
                           activeMode === mKey
                             ? 'border-2 border-ink bg-white text-ink shadow-[1px_1px_0_#17304F]'
                             : 'text-slateText hover:text-ink'
@@ -682,17 +679,17 @@ export default function App() {
                         }}
                         aria-label={`Beralih ke ${modeDetails[mKey].label}`}
                       >
-                        {mKey === 'read' && <BookOpen className="h-4 w-4" />}
-                        {mKey === 'visual' && <Eye className="h-4 w-4" />}
-                        {mKey === 'sound' && <Volume2 className="h-4 w-4" />}
-                        <span>{modeDetails[mKey].label}</span>
+                        {mKey === 'read' && <BookOpen className="h-4 w-4 flex-shrink-0" />}
+                        {mKey === 'visual' && <Eye className="h-4 w-4 flex-shrink-0" />}
+                        {mKey === 'sound' && <Volume2 className="h-4 w-4 flex-shrink-0" />}
+                        <span className="truncate">{modeDetails[mKey].label}</span>
                       </button>
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex w-full sm:w-auto items-center gap-2">
                     <button
-                      className="secondary-button text-xs font-bold py-2 px-3 flex items-center gap-1.5 bg-[#FFF9E6]"
+                      className="secondary-button flex-1 sm:flex-initial text-xs font-bold py-2 px-3 flex items-center justify-center gap-1.5 bg-[#FFF9E6]"
                       onClick={() => setIsQuizOpen(true)}
                     >
                       <Award className="h-4 w-4 text-[#F2A33A]" />
@@ -700,7 +697,7 @@ export default function App() {
                     </button>
 
                     <button
-                      className="secondary-button text-xs font-bold py-2 px-3.5 flex items-center gap-1.5"
+                      className="secondary-button flex-1 sm:flex-initial text-xs font-bold py-2 px-3.5 flex items-center justify-center gap-1.5"
                       onClick={handleOpenScanModal}
                     >
                       <Camera className="h-4 w-4 text-forest" />

@@ -229,20 +229,22 @@ export function QuizModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby="quiz-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-sm animate-fadeIn"
     >
       <div
         ref={dialogRef}
-        className="relative w-full max-w-xl rounded-3xl border-3 border-ink bg-[#FFFDF9] p-6 shadow-[8px_8px_0_#17304F] max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-xl rounded-3xl border-3 border-ink bg-[#FFFDF9] p-4 sm:p-6 shadow-[8px_8px_0_#17304F] max-h-[90vh] overflow-y-auto overflow-x-hidden"
       >
-        {/* Tombol Tutup */}
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-2xl border-2 border-ink bg-white shadow-[2px_2px_0_#17304F] hover:bg-red-50 focus-ring"
-          aria-label="Tutup kuis ceria"
-        >
-          <X className="h-5 w-5 text-ink" />
-        </button>
+        {/* Tombol Tutup (Sticky agar tetap terlihat saat digulir vertikal) */}
+        <div className="sticky top-0 z-10 flex justify-end -mt-1 -mr-1 pointer-events-none">
+          <button
+            onClick={onClose}
+            className="pointer-events-auto grid min-h-12 min-w-12 place-items-center rounded-2xl border-2 border-ink bg-white shadow-[2px_2px_0_#17304F] hover:bg-red-50 focus-ring"
+            aria-label="Tutup kuis ceria"
+          >
+            <X className="h-5 w-5 text-ink" />
+          </button>
+        </div>
 
         {/* Jika belum ada pertanyaan */}
         {questions.length === 0 ? (
@@ -299,32 +301,32 @@ export function QuizModal({
           </div>
         ) : (
           /* ================= TAMPILAN PERTANYAAN AKTIF ================= */
-          <div className="space-y-5">
+          <div className="-mt-8 space-y-5">
             {/* Header Kuis */}
-            <div className="flex items-center gap-2">
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#FFF2B2] border-2 border-ink text-ink shadow-[1px_1px_0_#17304F]">
+            <div className="flex items-center gap-2 pr-12">
+              <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-[#FFF2B2] border-2 border-ink text-ink shadow-[1px_1px_0_#17304F]">
                 <Sparkles className="h-5 w-5 text-[#F2A33A]" />
               </span>
-              <div>
+              <div className="min-w-0">
                 <span className="text-xs font-extrabold uppercase tracking-wider text-forest">
                   Kuis Ceria Singkat
                 </span>
-                <h2 id="quiz-modal-title" className="text-lg font-extrabold text-ink">
+                <h2 id="quiz-modal-title" className="text-base sm:text-lg font-extrabold text-ink">
                   Pertanyaan {currentIdx + 1} dari {questions.length}
                 </h2>
               </div>
             </div>
 
             {/* Kotak Pertanyaan */}
-            <div className="rounded-2xl border-2 border-ink bg-white p-4 shadow-[2px_2px_0_#17304F]">
+            <div className="rounded-2xl border-2 border-ink bg-white p-3.5 sm:p-4 shadow-[2px_2px_0_#17304F]">
               <div className="flex items-start justify-between gap-2">
-                <p className="text-base md:text-lg font-bold text-ink leading-snug">
+                <p className="min-w-0 text-base md:text-lg font-bold text-ink leading-snug break-words">
                   {currentQ.question}
                 </p>
                 <button
                   type="button"
                   onClick={() => speakText(currentQ.question)}
-                  className="rounded-xl border border-ink p-2 text-forest hover:bg-mint/40 focus-ring flex-shrink-0"
+                  className="grid min-h-12 min-w-12 place-items-center rounded-xl border border-ink p-2 text-forest hover:bg-mint/40 focus-ring flex-shrink-0"
                   aria-label="Bacakan pertanyaan ini"
                   title="Bacakan pertanyaan"
                 >
@@ -363,7 +365,7 @@ export function QuizModal({
                     <span className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-xl border border-ink bg-white text-xs font-extrabold">
                       {String.fromCharCode(65 + oIdx)}
                     </span>
-                    <span className="flex-1 leading-snug">{opt}</span>
+                    <span className="min-w-0 flex-1 leading-snug break-words">{opt}</span>
                     {isAnswered && isCorrect && (
                       <CheckCircle2 className="h-6 w-6 text-forest flex-shrink-0" />
                     )}

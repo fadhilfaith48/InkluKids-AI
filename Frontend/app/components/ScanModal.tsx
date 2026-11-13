@@ -29,7 +29,6 @@ export function ScanModal({ isOpen, onClose, onScanSuccess }: ScanModalProps) {
 
   // Camera state
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [cameraActive, setCameraActive] = useState(false);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
 
   if (!isOpen) return null;
@@ -44,8 +43,7 @@ export function ScanModal({ isOpen, onClose, onScanSuccess }: ScanModalProps) {
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-      setCameraActive(true);
-    } catch (err: any) {
+    } catch {
       setError(
         'Kamera tidak dapat diakses. Pastikan izin kamera telah diberikan atau gunakan opsi Unggah Foto.'
       );
@@ -57,7 +55,6 @@ export function ScanModal({ isOpen, onClose, onScanSuccess }: ScanModalProps) {
       cameraStream.getTracks().forEach((track) => track.stop());
       setCameraStream(null);
     }
-    setCameraActive(false);
   };
 
   const handleClose = () => {
@@ -81,10 +78,10 @@ export function ScanModal({ isOpen, onClose, onScanSuccess }: ScanModalProps) {
 
       handleClose();
       onScanSuccess(result);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Scan error:', err);
       setError(
-        err?.message ||
+        (err instanceof Error && err.message) ||
           'Gagal membaca buku. Pastikan teks terlihat cukup jelas dan pencahayaan baik.'
       );
     } finally {
@@ -125,40 +122,42 @@ export function ScanModal({ isOpen, onClose, onScanSuccess }: ScanModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-3 sm:p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-labelledby="scan-modal-title"
     >
-      <div className="modal-card relative w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 md:p-8">
-        <button
-          className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full border-2 border-ink bg-white text-ink focus-ring"
-          onClick={handleClose}
-          aria-label="Tutup jendela pindai"
-          disabled={loading}
-        >
-          <X className="h-5 w-5" />
-        </button>
-
-        {/* Modal Header */}
-        <div className="flex items-center gap-3">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl border-2 border-ink bg-mint text-forest">
-            <Camera className="h-6 w-6 stroke-[2.5]" />
-          </span>
-          <div>
-            <h2 id="scan-modal-title" className="text-2xl font-bold text-ink">
-              Pindai Halaman Buku
-            </h2>
-            <p className="text-xs text-slateText">
-              Pilih cara mengambil foto halaman buku pelajaranmu
-            </p>
+      <div className="modal-card relative w-full max-w-xl max-h-[90vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6 md:p-8">
+        {/* Modal Header (Sticky agar tombol tutup selalu terlihat saat digulir) */}
+        <div className="sticky top-0 z-10 -mx-4 -mt-4 mb-2 flex items-start justify-between gap-3 border-b-2 border-ink/10 bg-white/95 px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:-mt-6 sm:px-6 sm:py-4 md:-mx-8 md:-mt-8 md:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid h-12 w-12 flex-shrink-0 place-items-center rounded-2xl border-2 border-ink bg-mint text-forest">
+              <Camera className="h-6 w-6 stroke-[2.5]" />
+            </span>
+            <div className="min-w-0">
+              <h2 id="scan-modal-title" className="text-xl font-bold text-ink sm:text-2xl break-words">
+                Pindai Halaman Buku
+              </h2>
+              <p className="text-xs text-slateText">
+                Pilih cara mengambil foto halaman buku pelajaranmu
+              </p>
+            </div>
           </div>
+
+          <button
+            className="grid min-h-12 min-w-12 flex-shrink-0 place-items-center rounded-full border-2 border-ink bg-white text-ink focus-ring"
+            onClick={handleClose}
+            aria-label="Tutup jendela pindai"
+            disabled={loading}
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
         {/* Tab Pemilih Opsi */}
-        <div className="mt-6 flex rounded-2xl border-2 border-ink bg-[#FAF6F0] p-1">
+        <div className="mt-4 grid grid-cols-3 gap-1 rounded-2xl border-2 border-ink bg-[#FAF6F0] p-1">
           <button
-            className={`flex-1 rounded-xl py-2.5 text-xs font-bold transition-all focus-ring ${
+            className={`min-h-12 rounded-xl px-1.5 py-2 text-[11px] sm:text-xs font-bold leading-tight text-center transition-all focus-ring ${
               activeMode === 'upload'
                 ? 'bg-white text-ink border-2 border-ink shadow-[2px_2px_0_#17304F]'
                 : 'text-slateText hover:text-ink'
@@ -172,7 +171,7 @@ export function ScanModal({ isOpen, onClose, onScanSuccess }: ScanModalProps) {
             Unggah File
           </button>
           <button
-            className={`flex-1 rounded-xl py-2.5 text-xs font-bold transition-all focus-ring ${
+            className={`min-h-12 rounded-xl px-1.5 py-2 text-[11px] sm:text-xs font-bold leading-tight text-center transition-all focus-ring ${
               activeMode === 'camera'
                 ? 'bg-white text-ink border-2 border-ink shadow-[2px_2px_0_#17304F]'
                 : 'text-slateText hover:text-ink'
@@ -186,7 +185,7 @@ export function ScanModal({ isOpen, onClose, onScanSuccess }: ScanModalProps) {
             Kamera Langsung
           </button>
           <button
-            className={`flex-1 rounded-xl py-2.5 text-xs font-bold transition-all focus-ring ${
+            className={`min-h-12 rounded-xl px-1.5 py-2 text-[11px] sm:text-xs font-bold leading-tight text-center transition-all focus-ring ${
               activeMode === 'sample'
                 ? 'bg-white text-ink border-2 border-ink shadow-[2px_2px_0_#17304F]'
                 : 'text-slateText hover:text-ink'
@@ -287,21 +286,21 @@ export function ScanModal({ isOpen, onClose, onScanSuccess }: ScanModalProps) {
             {sampleLessons.map((sample) => (
               <button
                 key={sample.id}
-                className="w-full flex items-center justify-between rounded-2xl border-2 border-ink bg-white p-4 text-left hover:bg-mint/30 transition-all focus-ring shadow-[2px_2px_0_#17304F]"
+                className="w-full flex items-center justify-between gap-2 rounded-2xl border-2 border-ink bg-white p-3.5 sm:p-4 text-left hover:bg-mint/30 transition-all focus-ring shadow-[2px_2px_0_#17304F]"
                 onClick={() => selectSampleLesson(sample)}
               >
-                <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-mint text-forest border border-ink">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-mint text-forest border border-ink">
                     <BookOpen className="h-5 w-5" />
                   </span>
-                  <div>
-                    <h4 className="font-bold text-ink">{sample.title}</h4>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-ink break-words">{sample.title}</h4>
                     <p className="text-xs text-slateText line-clamp-1">
                       {sample.points.length} poin ringkas · Ada Glosarium & Flashcard
                     </p>
                   </div>
                 </div>
-                <span className="inline-flex items-center gap-1 rounded-full bg-forest px-3 py-1 text-xs font-bold text-white">
+                <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-full bg-forest px-3 py-1 text-xs font-bold text-white">
                   Pilih <Sparkles className="h-3 w-3" />
                 </span>
               </button>
