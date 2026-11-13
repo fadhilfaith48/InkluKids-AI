@@ -6,12 +6,22 @@ Aplikasi web edukasi yang mengubah foto halaman buku pelajaran menjadi materi ya
 
 - Tim: **Git_Commit** — Fadhil Faith Al Abrisam Dewanto
 - Repository: https://github.com/fadhilfaith48/InkluKids-AI
-- Video demo: `<URL YouTube (Unlisted/Public)>`
-- Aplikasi (Vercel): `<URL frontend>`
-- Backend API: `<URL backend>`
+- Video demo: **WAJIB DIISI SEBELUM SUBMIT** (URL YouTube Unlisted/Public)
+- Aplikasi (Vercel): **WAJIB DIISI SEBELUM SUBMIT**
+- Backend API: **WAJIB DIISI SEBELUM SUBMIT**
 
-> **Template submission:** ganti semua teks di dalam `<...>` dengan data asli
-> sebelum commit final. Jangan mengisi dengan data palsu.
+> **Template submission:** ganti setiap tanda "WAJIB DIISI SEBELUM SUBMIT" dengan
+> data asli sebelum commit final. Jangan mengisi dengan data palsu.
+
+## Cara Demo
+
+1. Jalankan backend dan frontend (lihat bagian 5), lalu buka aplikasi di Chrome/Edge.
+2. Klik **Pindai Buku** → **Unggah File**, unggah foto halaman buku pelajaran.
+3. Tunjukkan Mode Baca, **Lihat Sumber**, Mode Visual, Mode Suara, dan **Tanya Tutor AI**.
+4. Login sebagai guru → **Mode Guru** → verifikasi materi → bagikan ke siswa binaan.
+5. Bila kuota AI habis atau internet mati, pakai tab **Contoh Halaman** (tanpa Gemini).
+
+Naskah lengkap 3 menit, rencana cadangan, dan daftar persiapan: [Docs/DEMO.md](Docs/DEMO.md).
 
 ---
 
@@ -90,6 +100,8 @@ Rincian batasan ada di [PRD](Docs/Archive/PRD%20InkluKids%20AI.md) dan [Arsitekt
 | Riwayat | Supabase (`scans`, `teacher_verifications`, `quiz_results`) + fallback `localStorage` |
 | Deployment | Vercel (frontend) + hosting backend (Render/Railway/Cloud Run/VPS); localhost untuk Grand Final |
 
+GitHub Actions CI (`.github/workflows/ci.yml`) otomatis menjalankan `pytest`, type-check (`tsc --noEmit`), `eslint`, dan `next build` pada setiap *push* dan *pull request*.
+
 Frontend memanggil backend FastAPI lewat `NEXT_PUBLIC_API_BASE_URL`. Bila backend
 sedang tidak berjalan, Route Handler Next.js (`/api/scan`, `/api/explain`,
 `/api/simplify`) menjadi cadangan sehingga demo tidak terhenti. Detail ada di
@@ -108,8 +120,8 @@ sedang tidak berjalan, Route Handler Next.js (`/api/scan`, `/api/explain`,
 
 1. **Clone repository**
    ```bash
-   git clone <url repository>
-   cd <nama folder>
+   git clone https://github.com/fadhilfaith48/InkluKids-AI.git
+   cd InkluKids-AI
    ```
 
 2. **Jalankan backend FastAPI**
@@ -128,7 +140,10 @@ sedang tidak berjalan, Route Handler Next.js (`/api/scan`, `/api/explain`,
    Isi `Backend/.env` bila sudah punya kunci:
    ```
    GEMINI_API_KEY=<kunci asli>
-   GEMINI_MODEL=gemini-2.5-flash
+   GEMINI_MODEL=gemini-3.5-flash-lite
+   TEXT_MODEL=gemini-3.1-flash-lite
+   MODEL_FALLBACKS=gemini-3.1-flash-lite,gemini-3.6-flash
+   AI_THINKING_BUDGET=0
 
    # Verifikasi token Supabase (JWT) untuk endpoint AI.
    # optional = token diverifikasi bila ada, tamu tetap boleh (demo aman).
@@ -136,6 +151,12 @@ sedang tidak berjalan, Route Handler Next.js (`/api/scan`, `/api/explain`,
    SUPABASE_URL=https://<project>.supabase.co
    # SUPABASE_JWT_SECRET=   ← hanya untuk project HS256 lama
    ```
+
+   `GEMINI_MODEL` adalah model vision untuk memindai gambar halaman buku, sedangkan
+   `TEXT_MODEL` dipakai untuk tugas teks (tutor AI, flashcard, dan penyederhanaan
+   materi guru). Bila model utama tidak tersedia, backend otomatis mencoba model
+   pada `MODEL_FALLBACKS` secara berurutan. `AI_THINKING_BUDGET=0` mematikan fitur
+   *thinking* agar token keluaran tidak habis dan JSON hasil AI tidak terpotong.
 
    Jalankan:
    ```bash
