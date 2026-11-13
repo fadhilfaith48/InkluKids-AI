@@ -43,7 +43,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
           </span>
           <div>
             <h2 id="help-modal-title" className="text-2xl font-bold text-ink">
-              Panduan InkluKids AI
+              Panduan PahamInklusif AI
             </h2>
             <p className="text-xs text-slateText">Cara belajar yang inklusif, ramah, dan terverifikasi</p>
           </div>

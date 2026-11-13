@@ -18,7 +18,6 @@ interface SourceModalProps {
 export function SourceModal({
   isOpen,
   onClose,
-  title,
   pointText,
   sourceQuote,
   isValidQuote = true,
@@ -134,7 +133,7 @@ export function SourceModal({
               </>
             )}
           </span>
-          <span>InkluKids AI · LOGICODIX 2026</span>
+          <span>PahamInklusif AI · LOGICODIX 2026</span>
         </div>
 
         <button

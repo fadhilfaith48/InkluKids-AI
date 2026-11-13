@@ -195,7 +195,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </span>
           <div>
             <h2 id="login-modal-title" className="text-2xl font-bold text-ink">
-              {mode === 'signup' ? 'Daftar Akun Siswa' : 'Masuk ke InkluKids AI'}
+              {mode === 'signup' ? 'Daftar Akun Siswa' : 'Masuk ke PahamInklusif AI'}
             </h2>
             <p className="text-xs text-slateText">
               {mode === 'signup'
