@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="PahamInklusif AI">
+  <rect x="3" y="3" width="58" height="58" rx="16" fill="#F8F0E3" stroke="#17304F" stroke-width="5"/>
+  <path d="M17 13h17a13 13 0 0 1 0 26h-7v12H17z" fill="#17304F"/>
+  <path d="M27 21h6a5 5 0 0 1 0 10h-6z" fill="#DCE8FD"/>
+  <circle cx="46" cy="46" r="7" fill="#DDF3E8" stroke="#17304F" stroke-width="4"/>
+</svg>
+
