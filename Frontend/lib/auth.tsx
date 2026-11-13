@@ -281,7 +281,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: mapAuthError(message) };
       }
     },
-    [loadProfile]
+    [ensureProfileRow, loadProfile]
   );
 
   const saveSettings = useCallback(

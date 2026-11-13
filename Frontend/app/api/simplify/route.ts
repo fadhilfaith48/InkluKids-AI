@@ -2,7 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getGeminiModel, SYSTEM_PROMPT_SIMPLIFY_TEXT } from '@/lib/gemini';
 import { rateLimitRequest, RATE_LIMIT_MESSAGE } from '@/lib/server-rate-limit';
 import { validateSourceQuote } from '@/lib/source-validator';
-import { ScanResult } from '@/types';
+import { Flashcard, ScanResult } from '@/types';
+
+interface RawPoint {
+  order?: number;
+  text?: string;
+  analogy?: string | null;
+  source_quote?: string;
+}
+
+interface RawSimplifyPayload {
+  title?: string;
+  points?: RawPoint[];
+  glossary?: ScanResult['glossary'];
+  flashcards?: Flashcard[];
+}
 
 export const maxDuration = 60;
 
@@ -53,14 +67,14 @@ Sederhanakan teks di atas dan kembalikan JSON terstruktur sesuai skema.`;
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
-    let parsedData: any;
+    let parsedData: RawSimplifyPayload;
     try {
       const cleaned = responseText
         .replace(/^```json\s*/i, '')
         .replace(/```\s*$/i, '')
         .trim();
-      parsedData = JSON.parse(cleaned);
-    } catch (parseErr) {
+      parsedData = JSON.parse(cleaned) as RawSimplifyPayload;
+    } catch {
       console.error('Gagal parse JSON Gemini (simplify):', responseText);
       return NextResponse.json(
         { error: 'AI mengembalikan format yang tidak valid. Silakan coba lagi.' },
@@ -69,13 +83,13 @@ Sederhanakan teks di atas dan kembalikan JSON terstruktur sesuai skema.`;
     }
 
     const points = (parsedData.points || [])
-      .filter((pt: any) => pt && typeof pt.text === 'string' && pt.text.trim())
-      .map((pt: any, idx: number) => ({
+      .filter((pt): pt is RawPoint & { text: string } => Boolean(pt && typeof pt.text === 'string' && pt.text.trim()))
+      .map((pt, idx: number) => ({
         order: idx + 1,
         text: pt.text.trim(),
         analogy: pt.analogy || null,
         source_quote: pt.source_quote || '',
-        is_valid_quote: validateSourceQuote(pt.source_quote, text),
+        is_valid_quote: validateSourceQuote(pt.source_quote || '', text),
       }));
 
     if (points.length === 0) {
@@ -94,7 +108,7 @@ Sederhanakan teks di atas dan kembalikan JSON terstruktur sesuai skema.`;
       ocr_text: text,
       points,
       glossary: parsedData.glossary || [],
-      flashcards: (parsedData.flashcards || []).map((fc: any) => ({
+      flashcards: (parsedData.flashcards || []).map((fc: Flashcard) => ({
         ...fc,
         is_valid_quote: validateSourceQuote(fc.source_quote, text),
       })),
@@ -104,10 +118,12 @@ Sederhanakan teks di atas dan kembalikan JSON terstruktur sesuai skema.`;
     };
 
     return NextResponse.json(simplifyResult);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in /api/simplify:', error);
+    const message =
+      error instanceof Error ? error.message : 'Terjadi kesalahan saat memproses teks.';
     return NextResponse.json(
-      { error: error?.message || 'Terjadi kesalahan saat memproses teks.' },
+      { error: message },
       { status: 500 }
     );
   }

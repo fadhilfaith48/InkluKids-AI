@@ -62,11 +62,11 @@ ${ocrText}
     const result = await model.generateContent(userPrompt);
     const responseText = result.response.text();
 
-    let parsedData: any;
+    let parsedData: Partial<ExplanationResult>;
     try {
       const cleaned = responseText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-      parsedData = JSON.parse(cleaned);
-    } catch (parseErr) {
+      parsedData = JSON.parse(cleaned) as Partial<ExplanationResult>;
+    } catch {
       return NextResponse.json(
         { error: 'Format respon tutor tidak valid.' },
         { status: 502 }
@@ -83,10 +83,12 @@ ${ocrText}
     };
 
     return NextResponse.json(explanationResult);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in /api/explain:', error);
+    const message =
+      error instanceof Error ? error.message : 'Terjadi kesalahan pada layanan tutor.';
     return NextResponse.json(
-      { error: error?.message || 'Terjadi kesalahan pada layanan tutor.' },
+      { error: message },
       { status: 500 }
     );
   }

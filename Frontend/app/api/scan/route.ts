@@ -2,7 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getGeminiModel, SYSTEM_PROMPT_SCAN } from '@/lib/gemini';
 import { rateLimitRequest, RATE_LIMIT_MESSAGE } from '@/lib/server-rate-limit';
 import { validateSourceQuote } from '@/lib/source-validator';
-import { ScanResult } from '@/types';
+import { Flashcard, ScanResult } from '@/types';
+
+interface RawPoint {
+  order?: number;
+  text?: string;
+  analogy?: string | null;
+  source_quote?: string;
+}
+
+interface RawScanPayload {
+  readable?: boolean;
+  title?: string;
+  ocr_text?: string;
+  points?: RawPoint[];
+  glossary?: ScanResult['glossary'];
+  flashcards?: Flashcard[];
+}
 
 export const maxDuration = 60; // Allow sufficient time for vision OCR model
 
@@ -54,12 +70,12 @@ export async function POST(req: NextRequest) {
     const responseText = result.response.text();
 
     // Parse JSON hasil dari Gemini
-    let parsedData: any;
+    let parsedData: RawScanPayload;
     try {
       // Bersihkan kemungkinan code block markdown jika ada
       const cleaned = responseText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-      parsedData = JSON.parse(cleaned);
-    } catch (parseErr) {
+      parsedData = JSON.parse(cleaned) as RawScanPayload;
+    } catch {
       console.error('Gagal parse JSON Gemini:', responseText);
       return NextResponse.json(
         { error: 'AI mengembalikan format yang tidak valid. Silakan coba pindai kembali.' },
@@ -81,19 +97,20 @@ export async function POST(req: NextRequest) {
     const ocrText = parsedData.ocr_text || '';
 
     // Validasi kutipan sumber (Explainable AI)
-    const validatedPoints = (parsedData.points || []).map((pt: any, idx: number) => {
-      const isValid = validateSourceQuote(pt.source_quote, ocrText);
+    const validatedPoints = (parsedData.points || []).map((pt: RawPoint, idx: number) => {
+      const sourceQuote = pt.source_quote || '';
+      const isValid = validateSourceQuote(sourceQuote, ocrText);
       return {
         order: pt.order || idx + 1,
-        text: pt.text,
+        text: pt.text || '',
         analogy: pt.analogy || null,
-        source_quote: pt.source_quote || '',
+        source_quote: sourceQuote,
         is_valid_quote: isValid,
       };
     });
 
     // Validasi kutipan untuk flashcards jika ada
-    const validatedFlashcards = (parsedData.flashcards || []).map((fc: any) => {
+    const validatedFlashcards = (parsedData.flashcards || []).map((fc: Flashcard) => {
       const isValid = validateSourceQuote(fc.source_quote, ocrText);
       return {
         ...fc,
@@ -115,10 +132,12 @@ export async function POST(req: NextRequest) {
     };
 
     return NextResponse.json(scanResult);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in /api/scan:', error);
+    const message =
+      error instanceof Error ? error.message : 'Terjadi kesalahan saat memproses gambar.';
     return NextResponse.json(
-      { error: error?.message || 'Terjadi kesalahan saat memproses gambar.' },
+      { error: message },
       { status: 500 }
     );
   }

@@ -9,7 +9,7 @@ interface RestReminderModalProps {
   speakText?: (text: string) => void;
 }
 
-export function RestReminderModal({ isOpen, onClose, speakText }: RestReminderModalProps) {
+export function RestReminderModal({ isOpen, onClose }: RestReminderModalProps) {
   if (!isOpen) return null;
 
   return (

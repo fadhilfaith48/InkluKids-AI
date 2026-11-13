@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { X, Sparkles, Smile, Lightbulb, BookA, Loader2, Volume2, ShieldCheck } from 'lucide-react';
+import { X, Sparkles, Smile, Lightbulb, BookA, Loader2, Volume2 } from 'lucide-react';
 import { askAITutor } from '@/lib/api-client';
 import { ExplanationResult } from '@/types';
 
@@ -43,8 +43,8 @@ export function AITutorModal({
       if (speakText && res.text) {
         speakText(res.text);
       }
-    } catch (err: any) {
-      setError(err?.message || 'Gagal meminta penjelasan.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Gagal meminta penjelasan.');
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ export function AITutorModal({
       setSelectedType(null);
       setError(null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- jalankan permintaan awal hanya saat modal dibuka atau poin/tipe berubah
   }, [isOpen, pointText, initialRequestType]);
 
   if (!isOpen) return null;

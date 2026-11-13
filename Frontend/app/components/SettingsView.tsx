@@ -7,10 +7,9 @@ import {
   Contrast,
   Volume2,
   Check,
-  Eye,
   Sliders,
 } from 'lucide-react';
-import { AccessibilitySettings, FontSizePreference, FontPreference } from '@/types';
+import { AccessibilitySettings, FontSizePreference } from '@/types';
 
 interface SettingsViewProps {
   settings: AccessibilitySettings;

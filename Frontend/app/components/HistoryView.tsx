@@ -84,8 +84,23 @@ export function HistoryView({
 
   // Pencarian Suara (Web Speech API)
   const handleVoiceSearch = () => {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    interface SpeechRecognitionResultEvent {
+      results: ArrayLike<ArrayLike<{ transcript: string }>>;
+    }
+    interface BrowserSpeechRecognition {
+      lang: string;
+      interimResults: boolean;
+      maxAlternatives: number;
+      onresult: ((event: SpeechRecognitionResultEvent) => void) | null;
+      onerror: (() => void) | null;
+      onend: (() => void) | null;
+      start: () => void;
+    }
+    const win = window as Window & {
+      SpeechRecognition?: new () => BrowserSpeechRecognition;
+      webkitSpeechRecognition?: new () => BrowserSpeechRecognition;
+    };
+    const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       alert('Pencarian suara memerlukan browser yang mendukung Web Speech API (seperti Google Chrome atau Microsoft Edge). Silakan gunakan ketik.');
@@ -101,7 +116,7 @@ export function HistoryView({
       setIsListening(true);
       speakText('Katakan judul atau topik yang ingin kamu cari...');
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionResultEvent) => {
         const transcript = event.results[0][0].transcript;
         setSearchQuery(transcript);
         speakText(`Mencari ${transcript}`);
@@ -117,7 +132,7 @@ export function HistoryView({
       };
 
       recognition.start();
-    } catch (err) {
+    } catch {
       setIsListening(false);
     }
   };
