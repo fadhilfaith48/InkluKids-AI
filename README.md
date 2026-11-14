@@ -6,9 +6,12 @@ Aplikasi web edukasi yang mengubah foto halaman buku pelajaran menjadi materi ya
 
 - Tim: **Git_Commit** — Fadhil Faith Al Abrisam Dewanto
 - Repository: https://github.com/fadhilfaith48/InkluKids-AI
-- Video demo: **Menunggu unggahan YouTube** (URL Unlisted/Public, 3–5 menit, diisi sebelum code freeze)
+- Video demo: https://www.youtube.com/watch?v=_oLoh3xsJg0
 - Aplikasi (Vercel): https://inklu-kids-ai.vercel.app
 - Backend API (Railway): https://inklukids-ai-production.up.railway.app (health check: https://inklukids-ai-production.up.railway.app/health)
+- Akun demo untuk juri:
+  - **Guru:** `guru@demo.com` (Password: `GuruDemo2026!`)
+  - **Siswa:** `siswa@demo.com` (Password: `SiswaDemo2026!`)
 
 ## Cara Demo
 
@@ -95,7 +98,7 @@ Rincian batasan ada di [PRD](Docs/Archive/PRD%20InkluKids%20AI.md) dan [Arsitekt
 | Suara | Web Speech API (`speechSynthesis`, `SpeechRecognition`) |
 | Auth & database | Supabase Auth + PostgreSQL; RLS di semua tabel; rencana Supabase Storage |
 | Riwayat | Supabase (`scans`, `teacher_verifications`, `quiz_results`) + fallback `localStorage` |
-| Deployment | Vercel (frontend) + hosting backend (Render/Railway/Cloud Run/VPS); localhost untuk Grand Final |
+| Deployment | Vercel (frontend) + Railway (backend); localhost untuk Grand Final |
 
 GitHub Actions CI (`.github/workflows/ci.yml`) otomatis menjalankan `pytest`, type-check (`tsc --noEmit`), `eslint`, dan `next build` pada setiap *push* dan *pull request*.
 
