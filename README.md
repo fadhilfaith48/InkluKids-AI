@@ -140,9 +140,9 @@ sedang tidak berjalan, Route Handler Next.js (`/api/scan`, `/api/explain`,
    Isi `Backend/.env` bila sudah punya kunci:
    ```
    GEMINI_API_KEY=<kunci asli>
-   GEMINI_MODEL=gemini-3.5-flash-lite
+   GEMINI_MODEL=gemini-2.5-flash
    TEXT_MODEL=gemini-3.1-flash-lite
-   MODEL_FALLBACKS=gemini-3.1-flash-lite,gemini-3.6-flash
+   MODEL_FALLBACKS=gemini-1.5-flash
    AI_THINKING_BUDGET=0
 
    # Verifikasi token Supabase (JWT) untuk endpoint AI.
